@@ -1,0 +1,2 @@
+# Pilotes ayant demandé le retrait de leurs données : un numéro CIVL par ligne (une note après une virgule est permise).
+# Après modification : python build_db.py --db civl_data.db --out ranking.db

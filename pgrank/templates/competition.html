@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero comp">
+  <p class="crumb"><a href="{{ root }}competitions.html">{{ _("Compétitions") }}</a> <a href="{{ root }}ranking/{{ month_key }}.html">{{ _("Classement de {month}", month=mlc(month_name)) }}</a></p>
+  <h1 class="long">{{ c.name }}</h1>
+  <p class="lede">{{ _("{span}, {n} pilotes", span=span_fr(c.start, c.end), n=t.n_pilots) }}{% if t.rated and t.n_nations %}{{ _(" de {n} pays", n=t.n_nations) }}{% endif %}.
+    <a href="{{ c.url }}">{{ _("Résultats officiels sur le site de la CIVL") }}</a></p>
+</section>
+
+{% if not t.rated %}
+<p class="note warn">{{ _("Cette compétition n’entre pas dans le calcul : {reason}. Les résultats sont donnés à titre d’information.", reason=_(t.reason)) }}</p>
+<table class="board calc">
+  <thead><tr><th scope="col" class="rk">{{ _("Rang") }}</th><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num">{{ _("Score") }}</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr><td class="rk">{{ r.rank }}</td><td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}.html">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> <span class="nat">{{ r.nation }}</span></td>
+      <td class="num">{{ r.score|round|int if r.score is not none }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<section class="reading">
+  {% if elo %}<p>{{ _h("Chaque pilote a un niveau Elo avant la compétition. Chacun est comparé à tous les autres : pour chaque duel, on regarde qui a fini devant et on le compare à ce que prévoyait l’écart de niveau ({scale} points d’écart = 10 chances contre 1 de gagner le duel). Battre un pilote plus fort rapporte beaucoup, battre un pilote plus faible presque rien ; perdre contre un pilote plus faible coûte cher. <b>Duels gagnés</b> est la part des adversaires que le pilote a réellement devancés ; <b>Attendu</b> est la part que prévoyaient les niveaux. Un favori n’est jamais sûr de tout gagner : à 85 % attendus par duel, il est en moyenne devancé par environ un adversaire sur sept (le survol de la colonne donne le rang attendu qui en résulte). L’amplitude (<b>K</b>) est plus grande pour les pilotes peu évalués.", scale=params.scale|round|int) }}</p>
+  {% else %}<p>Avant cette compétition, chaque pilote a un niveau <b>μ</b> et une incertitude <b>σ</b> ; son <b>rating</b> est μ − {{ cfg.z|round|int }}σ.
+    En comparant ces niveaux (fonction <code>predict_rank</code> d’OpenSkill), on obtient le <b>rang attendu</b>. L’écart entre rang attendu et rang réel déplace μ (vers le haut si le pilote a fait mieux que prévu) et resserre σ.</p>{% endif %}
+<ul class="facts">
+    <li>{{ _h("Le classement attendu aurait prédit <b>{p}</b> des duels entre pilotes", p=(t.acc_all * 100)|pct) }}{% if t.acc_exp == t.acc_exp and t.n_pairs_exp %} {{ _("({p} entre pilotes déjà évalués sur au moins 3 compétitions)", p=(t.acc_exp * 100)|pct) }}{% endif %}.</li>
+    {% if t.n_idle_returns %}<li>{% if elo %}{{ _n("<b>{n}</b> pilote revient après plus de {m} mois d’absence : K relevé avant le calcul.", "<b>{n}</b> pilotes reviennent après plus de {m} mois d’absence : K relevé avant le calcul.", t.n_idle_returns, html=True, m=cfg.inactive_after_months|round|int) }}{% else %}<b>{{ t.n_idle_returns }}</b> pilote{{ 's reviennent' if t.n_idle_returns > 1 else ' revient' }} après plus de {{ cfg.inactive_after_months|round|int }} mois d’absence : σ relevé avant le calcul.{% endif %}</li>{% endif %}
+    <li>{% if elo %}{{ _("Niveau Elo moyen du plateau avant la compétition : {r}.", r=t.field_rating|round|int) }}{% else %}Rating moyen du plateau avant la compétition : {{ t.field_rating|f1 }}.{% endif %}</li>
+  </ul>
+</section>
+
+<section class="tools">
+  <input type="search" id="q" placeholder="{{ _('Chercher un pilote ou un pays') }}" aria-label="{{ _('Chercher un pilote ou un pays') }}" data-filter="#calc tbody tr">
+</section>
+<div class="scroll">
+<table class="board calc" id="calc">
+  <caption class="sr">{{ _("Calcul pilote par pilote") }}</caption>
+  <thead><tr>
+    <th scope="col" class="rk">{{ _("Rang") }}</th><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num hide-s">{{ _("Score") }}</th>
+    {% if elo %}<th scope="col" class="num hide-s">{{ _("Duels gagnés") }}</th><th scope="col" class="num hide-s">{{ _("Attendu") }}</th>{% else %}<th scope="col" class="num hide-s">Rang attendu</th>{% endif %}<th scope="col">{{ _("Avant") }}</th><th scope="col">{{ _("Après") }}</th>
+    <th scope="col" class="num">{{ _("Écart") }}</th><th scope="col" class="bd hide-s">{{ _("Mouvement") }}</th>
+  </tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td class="rk">{{ r.rank }}</td>
+    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}.html">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> <span class="nat">{{ r.nation }}</span></td>
+    <td class="num hide-s">{{ r.score|round|int if r.score is not none }}</td>
+    {% if elo %}<td class="num hide-s">{{ (r.won * 100)|pct }}</td><td class="num hide-s" title="{{ _('Rang attendu : {r} (1 + nombre moyen de pilotes classés devant)', r=r.exp_rank) }}">{{ (r.exp_prob * 100)|pct }}</td>
+    {% else %}<td class="num hide-s" title="Probabilité de victoire attendue : {{ (r.exp_prob * 100)|f1 }} %">{{ r.exp_rank }}</td>{% endif %}
+    {% if elo %}<td class="st"><b>{{ r.rt_pre|round|int }}</b><small>K {{ r.k|round|int }}</small>{% if r.inflated %}<small class="idle">{{ _("K relevé après {m} mois sans compétition", m=r.idle|round|int) }}</small>{% elif r.prior == 0 %}<small>{{ _("première compétition") }}</small>{% endif %}</td>
+    <td class="st"><b>{{ r.rt_post|round|int }}</b></td>
+    {% else %}<td class="st"><b>{{ r.rt_pre|f1 }}</b><small>μ {{ r.mu_pre|f1 }}, σ {{ r.sigma_pre|f2 }}</small>{% if r.inflated %}<small class="idle">σ relevé de {{ r.sigma_raw|f2 }} après {{ r.idle|round|int }} mois sans compétition</small>{% elif r.prior == 0 %}<small>première compétition</small>{% endif %}</td>
+    <td class="st"><b>{{ r.rt_post|f1 }}</b><small>μ {{ r.mu_post|f1 }}, σ {{ r.sigma_post|f2 }}</small></td>
+    {% endif %}
+    <td class="num dl{% if r.d > 0.049 %} up{% elif r.d < -0.049 %} down{% endif %}">{{ r.d|fdelta }}</td>
+    <td class="bd hide-s"><span class="move" style="--a:{{ r.a }};--b:{{ r.b }}" title="{{ _('Rating {a} avant, {b} après', a=r.rt_pre|f1, b=r.rt_post|f1) }}"><i></i></span></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

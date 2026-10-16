@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="{{ lang or cfg.lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} – {{ _(site_title) }}</title>
+<meta name="description" content="{{ _('Classement mondial des pilotes de parapente calculé avec un système Elo à partir des résultats de compétitions publiés par la CIVL. Site indépendant et non officiel.') }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ _(site_title) }}">
+<meta property="og:title" content="{{ title }} – {{ _(site_title) }}">
+<meta property="og:description" content="{{ _('Classement mondial des pilotes de parapente calculé avec un système Elo à partir des résultats de compétitions publiés par la CIVL. Site indépendant et non officiel.') }}">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="{{ root }}static/style.css{% if asset_v %}?v={{ asset_v.css }}{% endif %}">
+</head>
+<body class="p-{{ page }}">
+<header class="top">
+  <a class="brand" href="{{ root }}index.html"><span class="mark" aria-hidden="true"><i></i><b></b></span>{{ _(site_title) }}</a>
+  <nav aria-label="{{ _('Principal') }}">
+    <a href="{{ root }}index.html"{% if page == 'ranking' %} aria-current="page"{% endif %}>{{ _("Classement") }}</a>
+    <a href="{{ root }}competitions.html"{% if page in ('competitions', 'competition') %} aria-current="page"{% endif %}>{{ _("Compétitions") }}</a>
+    <a href="{{ root }}method.html"{% if page == 'method' %} aria-current="page"{% endif %}>{{ _("Méthode") }}</a>
+  </nav>
+  {% if dyn %}<form class="gsearch" action="{{ root }}search" role="search"><input type="search" name="q" value="{{ q or '' }}" placeholder="{{ _('Chercher un pilote ou une compétition') }}" aria-label="{{ _('Chercher un pilote ou une compétition') }}" autocomplete="off"><input type="hidden" name="go" value="1"></form>{% endif %}
+</header>
+<main>
+{% block main %}{% endblock %}
+</main>
+<footer>
+  <p>{{ _h('Résultats : <a href="https://civlcomps.org">CIVL</a>, jusqu’au {last}. Calcul du {built}.', last=last_result|date_fr, built=build_date|date_fr) }}</p>
+  <p>{{ _("Site indépendant et non officiel : sans lien avec la FAI ni la CIVL.") }}
+     {% if dyn %}<a href="{{ root }}legal.html">{{ _("Mentions légales et données personnelles") }}</a>{% endif %}</p>
+  {% if langs %}<p class="langs" aria-label="Language">{% for code, label in langs.items() %}<a href="?lang={{ code }}"{% if code == lang %} aria-current="true"{% endif %} hreflang="{{ code }}" lang="{{ code }}">{{ label }}</a>{% endfor %}</p>{% endif %}
+  {% if not dyn %}<p><a href="{{ root }}exports/calculs_par_competition.csv">{{ _("Calculs par compétition (CSV)") }}</a>
+     <a href="{{ root }}exports/classement_mensuel.csv">{{ _("Classements mensuels (CSV)") }}</a></p>{% endif %}
+</footer>
+<script>window.I18N = {{ i18n_js|default('{"lang":"fr","t":{}}')|safe }};</script>
+<script src="{{ root }}static/app.js{% if asset_v %}?v={{ asset_v.js }}{% endif %}" defer></script>
+</body>
+</html>

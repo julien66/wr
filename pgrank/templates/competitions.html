@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero">
+  <h1>{{ _("Compétitions") }}</h1>
+  <p class="lede">{{ _("{n} compétitions, de la plus récente à la plus ancienne. Chaque page détaille le calcul pour chaque pilote.", n=n_comps|fint) }}</p>
+</section>
+<section class="tools">
+  <input type="search" id="q" placeholder="{{ _('Chercher une compétition') }}" aria-label="{{ _('Chercher une compétition') }}" data-filter="#list li">
+</section>
+<div id="list">
+{% for year, items in years %}
+  <h2 class="yh">{{ year }}</h2>
+  <ul class="clist">
+  {% for t in items %}
+    <li><a href="{{ root }}competition/{{ t.comp.id }}.html">{{ t.comp.name }}</a>
+      <span class="when">{{ span_fr(t.comp.start, t.comp.end) }}</span>
+      <span class="num">{{ _("{n} pilotes", n=t.n_pilots) }}</span>{% if not t.rated %} <em>{{ _("hors calcul") }}</em>{% endif %}</li>
+  {% endfor %}
+  </ul>
+{% endfor %}
+</div>
+{% endblock %}

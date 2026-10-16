@@ -1,0 +1,2 @@
+-r requirements.txt
+openskill>=6.1.1,<7   # seulement pour --engine openskill (Python >= 3.10)

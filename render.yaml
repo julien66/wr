@@ -1,0 +1,17 @@
+# Déploiement Render : la base ranking.db est calculée pendant le build (≈ 1 min) à partir de data/civl_data.db.
+services:
+  - type: web
+    name: classement-parapente
+    runtime: python
+    plan: starter            # site toujours actif, 512 Mo de RAM (≈ 250 Mo utilisés)
+    region: frankfurt        # UE
+    buildCommand: pip install -r requirements-dyn.txt && python build_db.py --db data/civl_data.db --out ranking.db
+    startCommand: gunicorn -w 1 --threads 4 -b 0.0.0.0:$PORT --timeout 60 wsgi:application
+    healthCheckPath: /robots.txt
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: RANKING_DB
+        value: /opt/render/project/src/ranking.db
+      - key: RANKING_PROXY
+        value: "1"

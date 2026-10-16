@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.db
+!data/civl_data.db
+.venv/
+site/

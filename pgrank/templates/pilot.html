@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero">
+  <p class="crumb"><a href="{{ root }}index.html">{{ _("Classement") }}</a></p>
+  <h1 class="long">{{ name }} <span class="nat big">{{ nation }}</span></h1>
+  {% if fin %}
+  <p class="lede">{{ _n("{n} compétition évaluée, dernière en {last}.", "{n} compétitions évaluées, dernière en {last}.", st.n, last=fin.last|iso_my) }}
+    {% if not fin.active %}{% if elo %}{{ _h("<b class=\"offtag\">Inactif</b> depuis plus de {m} mois : niveau conservé, ses prochains résultats pèseront davantage.", m=cfg.inactive_after_months|round|int) }}{% else %}<b class="offtag">Inactif</b> depuis plus de {{ cfg.inactive_after_months|round|int }} mois : niveau conservé, incertitude relevée à la prochaine compétition.{% endif %}{% endif %}</p>
+  {% endif %}
+</section>
+
+{% if fin %}
+<dl class="stats">
+  <div><dt>{{ _("Rang mondial") }}</dt><dd>{{ fin.rank|fint }}<small>{{ _("sur {n}", n=n_world|fint) }}</small></dd></div>
+  {% if fin.rank_f %}<div><dt>{{ _("Rang féminin") }}</dt><dd>{{ fin.rank_f|fint }}<small>{{ _("sur {n}", n=n_world_f|fint) }}</small></dd></div>{% endif %}
+  {% if best %}<div><dt>{{ _("Meilleur rang") }}</dt><dd>{{ best.r|fint }}<small>{{ best.m|iso_my_k }}{% if best_f %} · {{ _("féminin : {r}", r=best_f.r) }}{% endif %}</small></dd></div>{% endif %}
+  <div><dt>{{ _("Niveau Elo") if elo else "Rating" }}</dt><dd>{{ fin.rating|round|int if elo else fin.rating|f1 }}{% if not elo %}<small>μ {{ fin.mu|f1 }}, σ {{ fin.sigma|f2 }}</small>{% endif %}</dd></div>
+  <div><dt>{{ _("Victoires") }}</dt><dd>{{ st.wins }}<small>{{ _n("{n} podium", "{n} podiums", st.podiums) }}</small></dd></div>
+  <div><dt>{{ _("Top 10") }}</dt><dd>{{ st.top10 }}<small>{{ _("sur {n}", n=st.n) }}</small></dd></div>
+  <div><dt>{{ _("Place médiane") }}</dt><dd>{{ st.median_pct|pct }}<small>{{ _("du plateau, 0 % = tête") }}</small></dd></div>
+</dl>
+{% endif %}
+
+<section class="chartbox" aria-labelledby="ct">
+  <div class="charthead">
+    <h2 id="ct">{{ _("Évolution par compétition") }}</h2>
+    <ul class="key" aria-hidden="true">
+      {% if elo %}<li><i class="k-rt"></i>{{ _("Niveau Elo") }}</li>{% else %}<li><i class="k-rt"></i>Rating (μ − {{ cfg.z|round|int }}σ)</li>
+      <li><i class="k-mu"></i>Niveau μ</li>{% endif %}
+      {% if rdata %}<li><i class="k-rk"></i>{{ _("Rang mondial (échelle de droite)") }}</li>
+      <li class="kf" hidden><i class="k-rkf"></i>{{ _("Rang féminin") }}</li>
+      <li><i class="k-best"></i>{{ _("Meilleur rang") }}</li>{% endif %}
+      <li><i class="k-off"></i>{{ _("Inactif") }}</li>
+    </ul>
+  </div>
+  <div id="pchart" class="pchart" role="img" aria-label="{{ _('Courbe du rating de {name} après chaque compétition', name=name) }}"></div>
+  <div id="ptip" class="ptip" role="status" hidden></div>
+  {% if rdata %}<script type="application/json" id="rdata">{{ rdata|safe }}</script>{% endif %}
+  <p class="note">{% if rdata %}{{ _("Deux échelles : le niveau Elo à gauche, le rang à droite (1ᵉʳ en haut, échelle logarithmique). Les croisements des deux courbes n’ont donc pas de sens. Le rang est celui de fin de mois : il peut bouger sans compétition quand d’autres pilotes progressent ou deviennent inactifs.") }} {% endif %}{% if elo %}{{ _("La courbe de niveau change à chaque compétition.") }}{% else %}La courbe de niveau change à chaque compétition ; l’espace entre le rating et μ est la marge d’incertitude, qui se resserre quand le pilote enchaîne les résultats.{% endif %}</p>
+  <noscript><p class="note">{{ _("Le graphique demande JavaScript ; le tableau ci-dessous donne les mêmes valeurs.") }}</p></noscript>
+</section>
+<script type="application/json" id="pdata">{{ js|safe }}</script>
+
+<h2>{{ _("Résultats compétition par compétition") }}</h2>
+<div class="scroll">
+<table class="board calc">
+  <caption class="sr">{{ _("Résultats et variation du rating de {name}", name=name) }}</caption>
+  <thead><tr>
+    <th scope="col">{{ _("Compétition") }}</th><th scope="col" class="num">{{ _("Rang") }}</th><th scope="col" class="num hide-s">{% if elo %}{{ _("Duels gagnés") }}{% else %}Attendu{% endif %}</th>
+    <th scope="col">{{ _("Niveau après") if elo else "Rating après" }}</th><th scope="col" class="num">{{ _("Écart") }}</th>
+  </tr></thead>
+  <tbody>
+  {% for x in table %}
+  <tr>
+    <td class="pl"><a href="{{ root }}competition/{{ x.t.comp.id }}.html">{{ x.t.comp.name }}</a><small class="sub">{{ x.t.comp.end|date_fr }}</small></td>
+    <td class="num">{{ x.r.rank }}<small class="sub">{{ _("sur {n}", n=x.t.n_pilots) }}</small></td>
+    <td class="num hide-s">{% if elo %}{{ (x.r.won * 100)|pct }}<small class="sub">{{ _("attendu {p}", p=(x.r.exp_prob * 100)|pct) }}</small>{% else %}{{ x.r.exp_rank }}{% endif %}</td>
+    <td class="st"><b>{{ x.rt_post|round|int if elo else x.rt_post|f1 }}</b>{% if not elo %}<small>μ {{ x.r.mu_post|f1 }}, σ {{ x.r.sigma_post|f2 }}</small>{% endif %}</td>
+    <td class="num dl{% if x.d > 0.049 %} up{% elif x.d < -0.049 %} down{% endif %}">{{ x.d|fdelta }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

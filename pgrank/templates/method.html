@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero"><h1>{{ _("Méthode") }}</h1>
+  <p class="lede">{{ _("Un classement qui estime le niveau de chaque pilote à partir de ses résultats, compétition après compétition.") }}</p></section>
+<article class="prose">
+  {% if elo %}
+  <h2>{{ _("Le modèle") }}</h2>
+  <p>{{ _h("Le classement est un <b>Elo</b> adapté aux compétitions de parapente. Chaque pilote a un niveau, qui démarre à {start}. Dans une compétition, chaque pilote est comparé à tous les autres : pour un duel entre deux pilotes dont les niveaux sont A et B, la chance que A finisse devant est 1 / (1 + 10<sup>(B − A) / {scale}</sup>). Un écart de {scale} points correspond à 10 chances contre 1.", start=params.mu0|round|int, scale=params.scale|round|int) }}</p>
+  <p>{{ _h("Après la compétition, le niveau d’un pilote change de K × (score obtenu − score attendu), le score étant la moyenne de ses duels (1 s’il finit devant, 0,5 à égalité, 0 derrière). <b>Battre des pilotes faibles rapporte peu</b> (c’était attendu), battre des pilotes forts rapporte beaucoup, et perdre contre des pilotes faibles coûte cher. Le niveau d’un pilote ne monte donc pas simplement parce qu’il gagne souvent : il doit gagner contre des pilotes de plus en plus forts.") }}</p>
+  <h2>{{ _("Ce qui se passe à chaque compétition") }}</h2>
+  <ol>
+    <li>{{ _("Les compétitions sont traitées dans l’ordre de leur date de fin. Un pilote absent depuis plus de {m} mois redevient « provisoire » (voir plus bas).", m=cfg.inactive_after_months|round|int) }}</li>
+    <li>{{ _h("Le niveau d’avant donne le <b>rang attendu</b> de chaque pilote : un plus un nombre attendu de pilotes classés devant lui.") }}</li>
+    <li>{{ _h("Le niveau est mis à jour avec K = {k} × (1 + {boost} × e<sup>−n/10</sup>), où n est le nombre de compétitions déjà évaluées du pilote : les nouveaux pilotes bougent vite (jusqu’à K = {kmax}), les vétérans plus lentement (K tend vers {k}).", k=params.k|round|int, boost=params.boost|round|int, kmax=(params.k * (1 + params.boost))|round|int) }}</li>
+  </ol>
+  <h2>{{ _("Inactivité") }}</h2>
+  <p>{{ _h("Un pilote sans compétition depuis plus de {m} mois est <b>inactif</b> : il reste dans le classement, grisé, avec le niveau qu’il avait. À son retour, son nombre de compétitions « effectif » est divisé par deux tous les {h} mois d’absence au-delà du seuil, ce qui augmente K : ses premiers résultats pèsent plus. Cette règle est propre à ce site.", m=cfg.inactive_after_months|round|int, h=cfg.elo_idle_half_life|round|int) }}</p>
+  {% else %}
+  <h2>Le modèle</h2>
+  <p>Le calcul utilise la bibliothèque Python <b>OpenSkill</b>{% if params.version %} (version {{ params.version }}){% endif %}, modèle <b>{{ cfg.model }}</b> (famille Weng &amp; Lin, 2011){% if cfg.model == 'BradleyTerryPart' %} : comparaisons deux à deux, chaque pilote étant comparé à ses {{ params.window }} voisins les plus proches au classement de chaque côté, de sorte que l’effet d’une compétition ne dépend pas de la taille du plateau{% endif %}, avec les paramètres suivants : un nouveau pilote démarre à μ = {{ params.mu0|round|int }} et σ = {{ params.sigma0|f2 }}, β = {{ params.beta|f2 }}, τ = {{ params.tau|f2 }}{% if params.window %}, fenêtre de {{ params.window }} voisins{% endif %}. Chaque compétition est un classement complet de tous les pilotes, ex æquo compris.</p>
+  <p>Chaque pilote a un niveau <b>μ</b> et une incertitude <b>σ</b>. Le <b>rating</b> affiché est l’<i>ordinal</i> d’OpenSkill : μ − {{ cfg.z|round|int }}σ. Il récompense les bons résultats, mais seulement dans la mesure où l’on est sûr d’eux.</p>
+  <h2>Ce qui se passe à chaque compétition</h2>
+  <p>Les compétitions sont traitées dans l’ordre de leur date de fin. Pour chacune :</p>
+  <ol>
+    <li>Si le pilote est absent depuis plus de {{ cfg.inactive_after_months|round|int }} mois, son incertitude est relevée (voir plus bas). Son niveau μ ne bouge pas.</li>
+    <li>OpenSkill (<code>predict_rank</code>) donne le rang attendu de chaque pilote d’après les niveaux d’avant la compétition.</li>
+    <li>OpenSkill (<code>rate</code>) compare le classement réel à ces niveaux : un pilote mieux classé que prévu voit μ monter, un pilote moins bien classé voit μ baisser, et σ diminue.</li>
+  </ol>
+  <h2>Inactivité</h2>
+  <p>Un pilote sans compétition depuis plus de {{ cfg.inactive_after_months|round|int }} mois est <b>inactif</b> : il reste dans le classement, grisé, avec le niveau qu’il avait. À son retour, son incertitude est relevée à raison de {{ cfg.idle_tau|f2 }}² par mois au-delà du seuil (plafonnée à {{ params.sigma0|f2 }}), ce qui rend ses premiers résultats plus influents. Cette règle est ajoutée par ce site ; elle ne fait pas partie d’OpenSkill.</p>
+  {% endif %}
+  <h2>{{ _("Données") }}</h2>
+  <p>{{ _("{results} résultats de {pilots} pilotes dans {comps} compétitions, issus des classements publiés par la CIVL, de {year} à aujourd’hui. Les compétitions de moins de {min} pilotes ne sont pas calculées", results=n_results|fint, pilots=n_pilots|fint, comps=n_rated|fint, year=first.year, min=cfg.min_field) }}{% if skipped %} ({{ _n("{n} concernée", "{n} concernées", skipped|length) }}){% endif %}. {{ _("Un pilote à 0 point termine ex æquo dernier. Le classement mensuel est l’état des ratings à la fin du mois.") }}</p>
+  <p>{{ _("Les premières années reposent sur peu de données : les classements d’avant 2008 sont à lire avec prudence.") }}</p>
+  <h2>{{ _("Qualité des prévisions") }}</h2>
+  <p>{{ _h("Avant chaque compétition, on regarde si, pour deux pilotes déjà évalués sur au moins 3 compétitions, celui qui avait le plus haut niveau a fini devant l’autre. Sur l’ensemble de l’historique, c’est le cas pour <b>{p1}</b> des {n} duels. Entre les 30 meilleurs pilotes de chaque plateau (au moins 10 compétitions), c’est <b>{p2}</b> : l’ordre au sommet est difficile à prévoir, et les écarts entre les meilleurs sont souvent plus petits que l’incertitude.", p1=(metrics.acc_exp_total * 100)|pct1, n=metrics.pairs_exp_total|fint, p2=(metrics.acc_elite_total * 100)|pct1) }}</p>
+  <table class="mini">
+    <thead><tr><th scope="col">{{ _("Année") }}</th><th scope="col" class="num">{{ _("Duels bien prédits") }}</th><th scope="col" class="num">{{ _("Duels") }}</th></tr></thead>
+    <tbody>{% for y, v in metrics.acc_by_year.items() %}<tr><td>{{ y }}</td><td class="num">{{ (v[0] * 100)|pct1 }}</td><td class="num">{{ v[1]|fint }}</td></tr>{% endfor %}</tbody>
+  </table>
+  <h2>{{ _("Limites") }}</h2>
+  {% if elo %}<p>{{ _("Un Elo ne compare que des pilotes qui se sont rencontrés, directement ou par des pilotes en commun. Un pilote qui ne court que dans des compétitions régionales est jugé par rapport à ses adversaires habituels ; son niveau n’est rattaché au reste du monde que par les pilotes qui courent aux deux niveaux. Les niveaux n’ont de sens que comparés entre eux (le niveau moyen dérive avec l’arrivée de nouveaux pilotes), et les écarts entre les meilleurs pilotes sont souvent plus petits que la précision de l’estimation.") }}</p>{% else %}  {% if cfg.model == 'BradleyTerryPart' %}<p>Un pilote qui enchaîne de nombreux top 10 sans jamais gagner progresse moins vite qu’avec le modèle Plackett-Luce, qui augmentait μ à chaque bon résultat sur un grand plateau. Le classement reste sensible à la qualité du plateau : un pilote qui ne court que des compétitions locales est comparé surtout à ses pairs locaux.</p>{% elif cfg.model == 'PlackettLuce' %}<p>Avec les paramètres par défaut du Plackett-Luce, l’incertitude σ diminue très lentement sur des plateaux de 100 pilotes ou plus : elle reste proche de sa valeur initiale même après des dizaines de compétitions. Sur ces plateaux, la mise à jour dépend surtout de la place d’arrivée et peu de l’écart avec le rang attendu : le niveau μ monte à chaque bon résultat, si bien que le rating favorise les pilotes qui ont couru beaucoup de compétitions. La relance de σ après une longue absence a peu d’effet visible.</p>{% endif %}
+  {% endif %}
+  <p>{{ _("L’ordre exact au sommet est à prendre avec prudence.") }}</p>
+</article>
+{% endblock %}

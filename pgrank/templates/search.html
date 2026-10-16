@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero"><h1>{{ _("Recherche") }}</h1>
+  <form class="gsearch big" action="{{ root }}search" role="search">
+    <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Nom d’un pilote, numéro CIVL ou compétition') }}" aria-label="{{ _('Recherche') }}" autocomplete="off" autofocus>
+    {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}
+  </form>
+  <p class="note">{{ _("Les accents, les majuscules et l’ordre des mots n’ont pas d’importance. « j garcia » trouve Julien Garcia ; une faute de frappe légère est tolérée.") }}</p>
+</section>
+{% if q|length < 2 %}<p class="note">{{ _("Tapez au moins deux lettres.") }}</p>
+{% else %}
+<h2>{{ _("Pilotes") }} <small class="sub">{{ total|fint }}{% if total > pilots|length %} {{ _("(les {n} premiers affichés)", n=pilots|length) }}{% endif %}</small></h2>
+<div class="tools facets">
+  <a class="chip" href="{{ root }}search?q={{ q|urlencode }}{{ '&sex=F' if sex }}"{% if not nation %} aria-current="true"{% endif %}>{{ _("Tous pays") }}</a>
+  {% for code, n in facets %}
+  <a class="chip" href="{{ root }}search?q={{ q|urlencode }}&nation={{ code|urlencode }}{{ '&sex=F' if sex }}"{% if nation == code %} aria-current="true"{% endif %}>{{ code or '?' }} <small>{{ n }}</small></a>
+  {% endfor %}
+  <a class="chip toggle" href="{{ root }}search?q={{ q|urlencode }}{{ '&nation=' ~ nation if nation }}{{ '' if sex else '&sex=F' }}"{% if sex %} aria-current="true"{% endif %}>{{ _("Féminin seulement") }}</a>
+</div>
+{% if pilots %}
+<div class="scroll">
+<table class="board">
+  <thead><tr><th scope="col" class="rk">{{ _("Rang") }}</th><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num">{{ _("Rating") }}</th>
+    <th scope="col" class="num hide-s">{{ _("Pic") }}</th><th scope="col" class="num hide-s">{{ _("Compét.") }}</th><th scope="col" class="hide-s">{{ _("Période") }}</th><th scope="col" class="hide-s">{{ _("Statut") }}</th></tr></thead>
+  <tbody>
+  {% for p in pilots %}
+  <tr{% if p.rank and not p.active %} class="off"{% endif %}>
+    <td class="rk">{{ p.rank or '–' }}{% if p.rank_f %}<small class="sub">{{ _("féminin : {r}", r=p.rank_f) }}</small>{% endif %}</td>
+    <td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ p.civlid }}.html">{{ p.name }}</a></span> <span class="nat">{{ p.nation }}</span>{% if p.gender == 'F' %} <span class="nat">F</span>{% endif %}<small class="sub">CIVL {{ p.civlid }}</small></td>
+    <td class="num rt">{{ p.rating|round|int if p.rating is not none }}</td>
+    <td class="num hide-s">{{ p.peak|round|int if p.peak is not none }}</td>
+    <td class="num hide-s">{{ p.n_comps or 0 }}</td>
+    <td class="hide-s">{% if p.first_end %}{{ p.first_end[:4] }}{% if p.last_end[:4] != p.first_end[:4] %}–{{ p.last_end[:4] }}{% endif %}{% endif %}</td>
+    <td class="hide-s">{% if not p.rank %}<em>{{ _("hors classement") }}</em>{% elif p.active %}{{ _("actif") }}{% else %}<em>{{ _("inactif") }}</em>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}<p class="note">{{ _("Aucun pilote ne correspond avec ces filtres.") if nation or sex else _("Aucun pilote ne correspond.") }}</p>{% endif %}
+<h2>{{ _("Compétitions") }} <small class="sub">{{ comps|length }}</small></h2>
+{% if comps %}
+<ul class="clist">
+  {% for c in comps %}
+  <li><a href="{{ root }}competition/{{ c.id }}.html">{{ c.name }}</a>
+    <span class="when">{{ span_fr(iso_date(c.start), iso_date(c.end)) }}</span>
+    <span class="num">{{ _("{n} pilotes", n=c.n_pilots) }}</span>{% if not c.rated %} <em>{{ _("hors calcul") }}</em>{% endif %}</li>
+  {% endfor %}
+</ul>
+{% else %}<p class="note">{{ _("Aucune compétition ne correspond.") }}</p>{% endif %}
+{% endif %}
+{% endblock %}

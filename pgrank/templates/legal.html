@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero"><h1 class="long">{{ _("Mentions légales et données personnelles") }}</h1></section>
+<article class="prose">
+  <h2>{{ _("Un site non officiel") }}</h2>
+  <p>{{ _("Ce site est un projet personnel et indépendant. Il n’est ni édité, ni validé, ni soutenu par la Fédération aéronautique internationale (FAI), sa commission CIVL ou toute autre organisation, et il n’engage aucune d’elles. Le classement est calculé par l’éditeur avec sa propre méthode : il est indicatif et ne remplace pas les classements officiels de la CIVL.") }}</p>
+  <h2>{{ _("Éditeur et contact") }}</h2>
+  <p>{% if cfg.editor_name %}{{ _("Éditeur :") }} {{ cfg.editor_name }}<br>{% endif %}{% if cfg.host_info %}{{ _("Hébergeur :") }} {{ cfg.host_info }}<br>{% endif %}{{ _h('Contact : <a href="mailto:{email}">{email}</a>', email=cfg.contact_email) }}</p>
+  <h2>{{ _("Source des données") }}</h2>
+  <p>{{ _h('Les résultats proviennent des classements de compétitions publiés par la CIVL (<a href="https://civlcomps.org">civlcomps.org</a>). Ils sont repris à titre d’information, sans modification, puis traités pour calculer un niveau Elo. Aucune garantie d’exactitude ni d’exhaustivité : des erreurs ou des omissions sont possibles, et les valeurs calculées peuvent changer quand la méthode évolue.') }}</p>
+  <h2>{{ _("Données personnelles") }}</h2>
+  <p>{{ _("Pour chaque pilote, le site publie des données déjà publiques dans les résultats officiels (nom, numéro CIVL, nation, résultats en compétition) et des valeurs calculées (niveau Elo, rang). Le genre, issu d’une liste fournie à l’éditeur et de corrections manuelles, sert uniquement au classement féminin. Base légale : intérêt légitime d’informer sur des résultats sportifs publics (article 6.1.f du RGPD). Les données ne sont ni vendues ni transmises.") }}</p>
+  <p>{{ _("Le site n’utilise aucun traceur ni mesure d’audience. Un seul cookie, « lang », mémorise la langue choisie (un an). Comme tout serveur web, l’hébergement peut conserver des journaux techniques (adresse IP, date, page demandée) pour la sécurité, pendant une durée limitée. Les pages des pilotes et la recherche sont exclues des moteurs de recherche. Aucune police ni ressource n’est chargée depuis un site tiers.") }}</p>
+  <h2>{{ _("Vos droits") }}</h2>
+  <p>{{ _h('Vous pouvez demander l’accès à vos données, leur rectification ou leur effacement, ou vous opposer à leur traitement, en écrivant à <a href="mailto:{email}">{email}</a> avec votre numéro CIVL. Votre nom, votre nation et votre genre sont alors retirés du site : votre ligne reste dans les classements, sans nom, pour ne pas fausser le rang des autres pilotes. Réponse sous un mois. Vous pouvez aussi saisir la CNIL (<a href="https://www.cnil.fr">cnil.fr</a>).', email=cfg.contact_email) }}</p>
+  <h2>{{ _("Réutilisation") }}</h2>
+  <p>{{ _("Le code, la méthode de calcul et les textes de ce site sont l’œuvre de l’éditeur ; les résultats sportifs restent soumis aux conditions de leurs sources. Merci de citer le site en cas de reprise.") }}</p>
+</article>
+{% endblock %}
