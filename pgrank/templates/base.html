@@ -18,7 +18,7 @@
   <nav aria-label="{{ _('Principal') }}">
     <a href="{{ root }}index.html"{% if page == 'ranking' %} aria-current="page"{% endif %}>{{ _("Classement") }}</a>
     <a href="{{ root }}competitions.html"{% if page in ('competitions', 'competition') %} aria-current="page"{% endif %}>{{ _("Compétitions") }}</a>
-    {% if dyn %}<a href="{{ root }}leaders.html"{% if page == 'leaders' %} aria-current="page"{% endif %}>{{ _("Numéros 1") }}</a>{% endif %}
+    {% if dyn and show_leaders %}<a href="{{ root }}leaders.html"{% if page == 'leaders' %} aria-current="page"{% endif %}>{{ _("Numéros 1") }}</a>{% endif %}
     <a href="{{ root }}method.html"{% if page == 'method' %} aria-current="page"{% endif %}>{{ _("Méthode") }}</a>
   </nav>
   {% if dyn %}<form class="gsearch" action="{{ root }}search" role="search"><input type="search" name="q" value="{{ q or '' }}" placeholder="{{ _('Chercher un pilote ou une compétition') }}" aria-label="{{ _('Chercher un pilote ou une compétition') }}" autocomplete="off"><input type="hidden" name="go" value="1"></form>{% endif %}

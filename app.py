@@ -28,6 +28,7 @@ from pgrank.store import norm
 
 HERE = Path(__file__).parent / "pgrank"
 PAGE_SIZE = 100
+SHOW_LEADERS = False     # page « Numéros 1 » : masquée (404, hors menu et plan du site) tant que les données ne sont pas fiabilisées
 
 
 class AllPages:
@@ -139,6 +140,8 @@ def create_app(db_path, proxy=False):
 
     @app.route("/leaders.html")
     def leaders():
+        if not SHOW_LEADERS:
+            abort(404)
         sex = "F" if sex_arg() else "G"
         d = leaders_by_month()
         seq = [(m, *d[(sex, m)]) for m in mkeys if (sex, m) in d]
@@ -184,7 +187,9 @@ def create_app(db_path, proxy=False):
     @app.route("/sitemap.xml")
     def sitemap():
         base = request.url_root.rstrip("/")
-        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/leaders.html", f"{base}/method.html", f"{base}/legal.html"]
+        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/method.html", f"{base}/legal.html"]
+        if SHOW_LEADERS:
+            urls.append(f"{base}/leaders.html")
         urls += [f"{base}/ranking/{k}.html" for k in mkeys]
         urls += [f"{base}/competition/{r[0]}.html" for r in db().execute("SELECT id FROM competitions")]
         body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
@@ -200,7 +205,7 @@ def create_app(db_path, proxy=False):
     def i18n_context():
         loc = g.loc
         return {"_": loc.gettext, "_h": loc.html, "_n": loc.ngettext, "lang": loc.lang, "langs": LANGS,
-                "month_label": loc.month_label, "mlc": loc.lower_month, "span_fr": loc.span,
+                "month_label": loc.month_label, "show_leaders": SHOW_LEADERS, "mlc": loc.lower_month, "span_fr": loc.span,
                 "i18n_js": json.dumps({"lang": loc.lang, "t": loc.js_catalog()}, ensure_ascii=False).replace("</", "<\\/")}
 
     @app.context_processor
