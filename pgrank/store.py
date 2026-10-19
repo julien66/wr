@@ -150,6 +150,11 @@ class Writer:
         for k, v in meta.items():
             con.execute("INSERT INTO meta VALUES (?,?)", (k, json.dumps(v, ensure_ascii=False)))
         con.executescript(INDEXES)
+        # numéro 1 de chaque mois (parmi les pilotes actifs) : page « Numéros 1 »
+        con.execute("CREATE TABLE leaders (month TEXT, sex TEXT, civlid TEXT, rating REAL)")
+        con.execute("INSERT INTO leaders SELECT month, 'G', civlid, rating FROM monthly WHERE rank_a=1")
+        con.execute("INSERT INTO leaders SELECT month, 'F', civlid, rating FROM monthly WHERE rank_fa=1")
+        con.execute("CREATE INDEX i_lead ON leaders(sex, month)")
         con.commit()
         con.execute("VACUUM")
         con.close()

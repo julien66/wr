@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero"><h1 class="long">{{ _("Les numéros 1") }}</h1>
+  <p class="lede">{{ _("Qui a dirigé le classement, mois après mois, depuis {month}.", month=first|iso_my_k) }}</p></section>
+<section class="tools sexnav">
+  <nav class="tabs" aria-label="{{ _('Catégorie') }}">
+    <a href="{{ root }}leaders.html"{% if not sex %} aria-current="page"{% endif %}>{{ _("Général") }}</a>
+    <a href="{{ root }}leaders.html?sex=F"{% if sex %} aria-current="page"{% endif %}>{{ _("Féminin") }}</a>
+  </nav>
+</section>
+<p class="note">{{ _("Le numéro 1 est le premier des pilotes actifs à la fin de chaque mois (les pilotes inactifs sont écartés). Le classement général est mixte ; le classement féminin ne compte que les pilotes dont le genre est connu.") }}
+  {{ _n("{n} pilote différent a été numéro 1.", "{n} pilotes différents ont été numéro 1.", n_leaders) }}</p>
+
+{% if chart.path %}
+<figure class="leadchart">
+  <figcaption>{{ _("Niveau Elo du numéro 1, mois après mois") }}</figcaption>
+  <svg viewBox="0 0 {{ chart.W }} {{ chart.H }}" role="img" aria-label="{{ _('Niveau Elo du numéro 1, mois après mois') }}">
+    {% for y, v in chart.yt %}<line class="gl" x1="{{ chart.L }}" x2="{{ chart.W - chart.R }}" y1="{{ '%.1f'|format(y) }}" y2="{{ '%.1f'|format(y) }}"/>
+    <text class="tk" x="{{ chart.L - 6 }}" y="{{ '%.1f'|format(y + 4) }}" text-anchor="end">{{ v }}</text>{% endfor %}
+    {% for x, y in chart.xt %}<text class="tk" x="{{ '%.1f'|format(x) }}" y="{{ chart.H - 8 }}" text-anchor="middle">{{ y }}</text>{% endfor %}
+    <path class="ln" d="{{ chart.path }}"/>
+    {% for l in chart.labels %}<text class="lb" x="{{ '%.1f'|format(l.x) }}" y="{{ '%.1f'|format(l.y) }}" text-anchor="middle">{{ l.text }}</text>{% endfor %}
+    {% if chart.last %}<circle class="dot" cx="{{ '%.1f'|format(chart.last[0]) }}" cy="{{ '%.1f'|format(chart.last[1]) }}" r="4"/>{% endif %}
+  </svg>
+</figure>
+{% endif %}
+
+<h2>{{ _("Les règnes") }}</h2>
+<table class="board leaders">
+  <thead><tr>
+    <th scope="col">{{ _("Pilote") }}</th><th scope="col">{{ _("Du") }}</th><th scope="col">{{ _("Au") }}</th>
+    <th scope="col" class="num">{{ _("Durée") }}</th><th scope="col" class="num">{{ _("Pic") }}</th>
+  </tr></thead>
+  <tbody>
+  {% for r in reigns %}
+  <tr>
+    <td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ r.civ }}.html">{{ r.name }}</a></span> <span class="nat">{{ r.nation }}</span></td>
+    <td>{{ r.start|iso_my_k }}</td>
+    <td>{% if r.end == now %}<b>{{ _("en cours") }}</b>{% else %}{{ r.end|iso_my_k }}{% endif %}</td>
+    <td class="num">{{ _n("{n} mois", "{n} mois", r.n) }}</td>
+    <td class="num">{{ r.peak|round|int }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>{{ _("Mois passés en tête") }}</h2>
+<table class="board leaders">
+  <thead><tr><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num">{{ _("Mois") }}</th><th scope="col" class="num">{{ _("Règnes") }}</th></tr></thead>
+  <tbody>
+  {% for h in honours %}
+  <tr><td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ h.civ }}.html">{{ h.name }}</a></span> <span class="nat">{{ h.nation }}</span></td>
+      <td class="num">{{ h.n }}</td><td class="num">{{ h.reigns }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

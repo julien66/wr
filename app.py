@@ -117,6 +117,64 @@ def create_app(db_path, proxy=False):
             resp.headers["Cache-Control"] = "private, max-age=300"
         return resp
 
+    # ---------------------------------------------------------------- numéros 1
+    leaders_cache = {}
+
+    def leaders_by_month():
+        """{(sexe, mois): (civlid, rating)} : numéro 1 des pilotes actifs, mois par mois (table `leaders`, sinon calcul direct)."""
+        if "d" not in leaders_cache:
+            d = {}
+            has = db().execute("SELECT 1 FROM sqlite_master WHERE name='leaders'").fetchone()
+            if has:
+                for r in db().execute("SELECT month, sex, civlid, rating FROM leaders"):
+                    d[(r["sex"], r["month"])] = (r["civlid"], r["rating"])
+            else:      # ancienne base sans la table : une requête indexée par mois et par catégorie (lent la 1re fois)
+                for m in mkeys:
+                    for sx, col in (("G", "rank_a"), ("F", "rank_fa")):
+                        r = db().execute(f"SELECT civlid, rating FROM monthly WHERE month=? AND {col}=1", (m,)).fetchone()
+                        if r:
+                            d[(sx, m)] = (r["civlid"], r["rating"])
+            leaders_cache["d"] = d
+        return leaders_cache["d"]
+
+    @app.route("/leaders.html")
+    def leaders():
+        sex = "F" if sex_arg() else "G"
+        d = leaders_by_month()
+        seq = [(m, *d[(sex, m)]) for m in mkeys if (sex, m) in d]
+        names = {r["civlid"]: (r["name"], r["nation"]) for r in db().execute("SELECT civlid, name, nation FROM pilots")}
+        reigns = []
+        for m, civ, rt in seq:
+            if reigns and reigns[-1]["civ"] == civ and mkeys.index(m) == reigns[-1]["i_end"] + 1:
+                r = reigns[-1]; r["end"] = m; r["i_end"] += 1; r["n"] += 1; r["peak"] = max(r["peak"], rt)
+            else:
+                reigns.append(dict(civ=civ, start=m, end=m, i_end=mkeys.index(m), n=1, peak=rt, name=names[civ][0], nation=names[civ][1]))
+        tot = defaultdict(int)
+        for r in reigns:
+            tot[r["civ"]] += r["n"]
+        honours = sorted(({"civ": c, "n": n, "name": names[c][0], "nation": names[c][1],
+                           "reigns": sum(1 for r in reigns if r["civ"] == c)} for c, n in tot.items()),
+                         key=lambda x: (-x["n"], x["name"]))
+        now = mkeys[-1]
+        # courbe : niveau du numéro 1 mois par mois (abscisse = indice du mois)
+        W, H, L, R_, T, B = 920, 280, 52, 14, 22, 30
+        lo = min(rt for _, _, rt in seq) if seq else 0
+        hi = max(rt for _, _, rt in seq) if seq else 1
+        lo, hi = math.floor(lo / 100) * 100 - 100, math.ceil(hi / 100) * 100
+        X = lambda i: L + (W - L - R_) * i / max(1, len(mkeys) - 1)
+        Y = lambda v: T + (H - T - B) * (1 - (v - lo) / (hi - lo))
+        pts = [(X(mkeys.index(m)), Y(rt)) for m, _, rt in seq]
+        path = "".join(("M" if i == 0 or mkeys.index(seq[i][0]) != mkeys.index(seq[i - 1][0]) + 1 else "L") + f"{x:.1f},{y:.1f}"
+                       for i, (x, y) in enumerate(pts))
+        years = sorted({int(m[:4]) for m in mkeys})
+        xt = [(X(mkeys.index(f"{y}-01")) if f"{y}-01" in mkeys else X(0), y) for y in years if y % 2 == 0 or len(years) < 12]
+        yt = [(Y(v), v) for v in range(int(lo), int(hi) + 1, 100)]
+        labels = [dict(x=X(mkeys.index(r["start"]) + (r["n"] - 1) / 2), y=Y(r["peak"]) - 8, text=r["name"].split()[-1], n=r["n"])
+                  for r in reigns if r["n"] >= 18]
+        return render_template("leaders.html", **common, page="leaders", title=g.loc.gettext("Les numéros 1"), qs="", sex=sex == "F",
+                               reigns=list(reversed(reigns)), honours=honours[:12], n_leaders=len(tot), now=now, first=mkeys[0],
+                               chart=dict(W=W, H=H, L=L, R=R_, T=T, B=B, path=path, xt=xt, yt=yt, labels=labels, last=pts[-1] if pts else None))
+
     @app.route("/robots.txt")
     def robots():
         base = request.url_root.rstrip("/")
@@ -126,7 +184,7 @@ def create_app(db_path, proxy=False):
     @app.route("/sitemap.xml")
     def sitemap():
         base = request.url_root.rstrip("/")
-        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/method.html", f"{base}/legal.html"]
+        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/leaders.html", f"{base}/method.html", f"{base}/legal.html"]
         urls += [f"{base}/ranking/{k}.html" for k in mkeys]
         urls += [f"{base}/competition/{r[0]}.html" for r in db().execute("SELECT id FROM competitions")]
         body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
@@ -187,15 +245,16 @@ def create_app(db_path, proxy=False):
         return "F" if request.args.get("sex", "").upper() == "F" else ""
 
     def actifs_arg():
-        return request.args.get("actifs", "") == "1"
+        """Par défaut seuls les pilotes actifs sont classés ; ?actifs=0 affiche aussi les inactifs."""
+        return request.args.get("actifs", "1") != "0"
 
     def nation_arg():
         n = request.args.get("nation", "").strip().upper()
         return n if re.fullmatch(r"[A-Z]{2,4}", n) else ""
 
-    def qs_of(sex, actifs=False, nat=None):
+    def qs_of(sex, actifs=True, nat=None):
         nat = nation_arg() if nat is None else nat
-        parts = (["sex=F"] if sex else []) + (["actifs=1"] if actifs else []) + ([f"nation={nat}"] if nat else [])
+        parts = (["sex=F"] if sex else []) + ([] if actifs else ["actifs=0"]) + ([f"nation={nat}"] if nat else [])
         return "?" + "&".join(parts) if parts else ""
 
     # ---------------------------------------------------------------- classement mensuel

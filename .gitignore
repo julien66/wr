@@ -4,3 +4,5 @@ __pycache__/
 !data/civl_data.db
 .venv/
 site/
+_v*.zip
+.DS_Store

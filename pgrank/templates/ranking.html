@@ -21,7 +21,7 @@
     <a href="{{ prefix }}{{ month.key }}.html{{ qs_f }}"{% if sex %} aria-current="page"{% endif %}>{{ _("Féminin") }}</a>
   </nav>
   <form class="goto" action="{{ prefix }}{{ month.key }}.html" method="get">
-    {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}{% if actifs %}<input type="hidden" name="actifs" value="1">{% endif %}{% if nat %}<input type="hidden" name="nation" value="{{ nat }}">{% endif %}
+    {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}{% if not actifs %}<input type="hidden" name="actifs" value="0">{% endif %}{% if nat %}<input type="hidden" name="nation" value="{{ nat }}">{% endif %}
     <label>{{ _("Aller au rang") }} <input type="number" name="rank" min="1" max="{{ n_shown }}" placeholder="600" required></label>
     <button type="submit">{{ _("Aller") }}</button>
   </form>
