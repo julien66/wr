@@ -17,7 +17,8 @@ CREATE TABLE results (comp_id INTEGER, civlid TEXT, rank INTEGER, score REAL, pr
 CREATE TABLE months (key TEXT PRIMARY KEY, year INTEGER, month INTEGER, n_rated INTEGER, n_active INTEGER,
   n_rated_f INTEGER, n_active_f INTEGER, lo REAL, hi REAL, comp_ids TEXT);
 CREATE TABLE monthly (month TEXT, rank INTEGER, rank_f INTEGER, civlid TEXT, rating REAL, n INTEGER, last TEXT,
-  active INTEGER, idle REAL, move INTEGER, move_f INTEGER, rank_a INTEGER, rank_fa INTEGER);
+  active INTEGER, idle REAL, move INTEGER, move_f INTEGER, rank_a INTEGER, rank_fa INTEGER,
+  sd INTEGER, rank_lo INTEGER, rank_hi INTEGER);
 """
 INDEXES = """
 CREATE INDEX i_res_comp ON results(comp_id, rank);
@@ -111,12 +112,12 @@ class Writer:
                 mf = pr[1] - rfa
             new_prev[civ] = (ra, rfa)
             out.append((mth.key, r["rank"], rf, civ, r["rating"], r["n"], r["last"], int(r["active"]),
-                        r["idle"], r["move"], mf, ra, rfa))
+                        r["idle"], r["move"], mf, ra, rfa, None if r.get("sd") is None else round(r["sd"]), r.get("rank_lo"), r.get("rank_hi")))
         self.prev = new_prev
         ratings = [r["rating"] for r in rows] or [0.0]
-        hi = math.ceil(max(ratings) / 100) * 100
+        hi = math.ceil(max([r["rating"] + (r.get("sd") or 0.0) for r in rows] or [0.0]) / 100) * 100
         lo = math.floor(min(ratings) / 100) * 100
-        self.con.executemany("INSERT INTO monthly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", out)
+        self.con.executemany("INSERT INTO monthly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", out)
         self.con.execute("INSERT INTO months VALUES (?,?,?,?,?,?,?,?,?,?)",
                          (mth.key, mth.year, mth.month, mth.n_rated, mth.n_active, nf, nf_act, lo, hi,
                           json.dumps(mth.comp_ids)))

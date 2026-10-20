@@ -11,10 +11,10 @@
 
 {% if fin %}
 <dl class="stats">
-  <div><dt>{{ _("Rang mondial") }}</dt><dd>{% if fin.rank %}{{ fin.rank|fint }}<small>{{ _("sur {n}", n=n_world|fint) }}</small>{% else %}–<small>{{ _("inactif : hors classement") }}</small>{% endif %}</dd></div>
+  <div><dt>{{ _("Rang mondial") }}</dt><dd>{% if fin.rank %}{{ fin.rank|fint }}<small>{{ _("sur {n}", n=n_world|fint) }}{% if fin.rank_lo %} · {{ _("probable : {a} à {b}", a=fin.rank_lo|fint, b=fin.rank_hi|fint) }}{% endif %}</small>{% else %}–<small>{{ _("inactif : hors classement") }}</small>{% endif %}</dd></div>
   {% if fin.rank_f %}<div><dt>{{ _("Rang féminin") }}</dt><dd>{{ fin.rank_f|fint }}<small>{{ _("sur {n}", n=n_world_f|fint) }}</small></dd></div>{% endif %}
   {% if best %}<div><dt>{{ _("Meilleur rang") }}</dt><dd>{{ best.r|fint }}<small>{{ best.m|iso_my_k }}{% if best_f %} · {{ _("féminin : {r}", r=best_f.r) }}{% endif %}</small></dd></div>{% endif %}
-  <div><dt>{{ _("Niveau Elo") if elo else "Rating" }}</dt><dd>{{ fin.rating|round|int if elo else fin.rating|f1 }}{% if not elo %}<small>μ {{ fin.mu|f1 }}, σ {{ fin.sigma|f2 }}</small>{% endif %}</dd></div>
+  <div><dt>{{ _("Niveau Elo") if elo else "Rating" }}</dt><dd>{{ fin.rating|round|int if elo else fin.rating|f1 }}{% if elo and fin.sd %}<small>{{ _("± {s} (incertitude)", s=fin.sd|round|int) }}</small>{% endif %}{% if not elo %}<small>μ {{ fin.mu|f1 }}, σ {{ fin.sigma|f2 }}</small>{% endif %}</dd></div>
   <div><dt>{{ _("Victoires") }}</dt><dd>{{ st.wins }}<small>{{ _n("{n} podium", "{n} podiums", st.podiums) }}</small></dd></div>
   <div><dt>{{ _("Top 10") }}</dt><dd>{{ st.top10 }}<small>{{ _("sur {n}", n=st.n) }}</small></dd></div>
   <div><dt>{{ _("Place médiane") }}</dt><dd>{{ st.median_pct|pct }}<small>{{ _("du plateau, 0 % = tête") }}</small></dd></div>

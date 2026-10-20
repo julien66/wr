@@ -35,7 +35,8 @@
   {% else %}<label class="check"><input type="checkbox" id="hide-off"> {{ _("Masquer les inactifs") }}</label>{% endif %}
 </section>
 {% if elo %}<p class="note">{{ _("Un pilote sans compétition depuis plus de {m} mois est inactif : il sort du classement (pas de rang, il ne prend la place de personne). S’il est affiché, il est grisé à la place que lui donnerait son niveau. À son retour, il redevient « provisoire » : ses prochains résultats le feront bouger plus vite.", m=cfg.inactive_after_months|round|int) }}
-{{ _("Le rating est un niveau Elo : à chaque compétition, un pilote gagne ou perd selon les pilotes qu’il a battus ou non, en tenant compte de leur niveau.") }}</p>
+{{ _("Le rating est un niveau Elo : à chaque compétition, un pilote gagne ou perd selon les pilotes qu’il a battus ou non, en tenant compte de leur niveau.") }}
+{{ _("Le ± est l’incertitude du rating (un écart type : environ 2 chances sur 3 que le vrai niveau soit dans cette plage, dessinée sur la barre). Elle diminue avec le nombre de compétitions et augmente avec le temps passé sans compétition. Au survol du rang : le rang probable correspondant.") }}</p>
 {% else %}<p class="note">Un pilote sans compétition depuis plus de {{ cfg.inactive_after_months|round|int }} mois est grisé : son niveau est conservé, mais son incertitude sera relevée avant sa prochaine évaluation.
 La barre montre le niveau estimé : le point est μ, la partie foncée va du rating (μ − {{ cfg.z|round|int }}σ) à μ, la partie claire jusqu’à μ + {{ cfg.z|round|int }}σ.</p>{% endif %}
 
@@ -50,11 +51,11 @@ La barre montre le niveau estimé : le point est μ, la partie foncée va du rat
   <tbody>
   {% for r in rows %}
   <tr{% if r.rank_a %} id="r{{ r.rank_a }}"{% else %} class="off"{% endif %}>
-    <td class="rk">{% if r.rank_a %}{{ r.rank_a }}{% if nat %}<small class="wr" title="{{ _('Rang mondial') }}">{{ r.wrank }}</small>{% endif %}{% else %}<span class="offrk" title="{{ _('Inactif : hors classement') }}">–</span>{% endif %}</td>
+    <td class="rk"{% if r.rank_lo %} title="{{ _('Rang probable (± 1 écart type) : {a} à {b}', a=r.rank_lo|fint, b=r.rank_hi|fint) }}"{% endif %}>{% if r.rank_a %}{{ r.rank_a }}{% if nat %}<small class="wr" title="{{ _('Rang mondial') }}">{{ r.wrank }}</small>{% endif %}{% else %}<span class="offrk" title="{{ _('Inactif : hors classement') }}">–</span>{% endif %}</td>
     <td class="mv hide-s{% if r.move %} {{ 'up' if r.move > 0 else 'down' }}{% endif %}">{% if r.move %}{{ '▲' if r.move > 0 else '▼' }}{{ r.move|abs }}{% endif %}</td>
     <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}.html">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> {% if dyn and r.nation %}<a class="nat" href="{{ prefix }}{{ month.key }}.html{{ qs_nonat }}{{ '&' if qs_nonat else '?' }}nation={{ r.nation }}" title="{{ _('Classement') }} {{ r.nation }}">{{ r.nation }}</a>{% else %}<span class="nat">{{ r.nation }}</span>{% endif %}</td>
-    <td class="num rt">{{ r.rating|f1 if not elo else r.rating|round|int }}</td>
-    <td class="bd"><span class="band{% if elo %} pt{% endif %}" style="--a:{{ r.a }};--b:{{ r.b }};--c:{{ r.c }}" title="{% if elo %}{{ _('Rating {r}', r=r.rating|f1) }}{% else %}μ {{ r.mu|f1 }}, σ {{ r.sigma|f2 }}{% endif %}"></span></td>
+    <td class="num rt">{{ r.rating|f1 if not elo else r.rating|round|int }}{% if elo and r.sd %}<small class="sd{% if r.sd >= 160 %} hi{% endif %}" title="{{ _('Incertitude : ± 1 écart type') }}">±{{ r.sd|round|int }}</small>{% endif %}</td>
+    <td class="bd"><span class="band{% if elo %} sd{% endif %}" style="--a:{{ r.a }};--b:{{ r.b }};--c:{{ r.c }}" title="{% if elo %}{{ _('Rating {r}, plage probable {a} à {b}', r=r.rating|round|int, a=(r.rating - r.sd)|round|int, b=(r.rating + r.sd)|round|int) }}{% else %}μ {{ r.mu|f1 }}, σ {{ r.sigma|f2 }}{% endif %}"></span></td>
     <td class="num hide-s">{{ r.n }}</td>
     <td class="last hide-s">{{ r.last|iso_my }}{% if not r.active %} <em>{{ _("inactif") }}</em>{% endif %}</td>
   </tr>

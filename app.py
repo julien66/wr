@@ -316,7 +316,11 @@ def create_app(db_path, proxy=False):
             d["rank_a"] = d["nr"]
             d["move"] = None if nat else (d["move_f"] if sex else d["move"])
             d["mu"], d["sigma"] = d["rating"], 0.0
-            d["a"], d["b"], d["c"] = (R._pct(d["rating"], mrow["lo"], mrow["hi"]),) * 3
+            sd = d.get("sd") or 0.0
+            d["sd"] = sd
+            if sex or nat:                     # intervalle calculé sur le classement mondial : pas affiché ici
+                d["rank_lo"] = d["rank_hi"] = None
+            d["a"], d["b"], d["c"] = (R._pct(d["rating"] + x, mrow["lo"], mrow["hi"]) for x in (-sd, 0.0, sd))
             rows.append(d)
         comps = [NS(comp=NS(id=c["id"], name=c["name"], start=dt.date.fromisoformat(c["start"]), end=dt.date.fromisoformat(c["end"])),
                     n_pilots=c["n_pilots"])
@@ -424,7 +428,9 @@ def create_app(db_path, proxy=False):
         fin = None
         if f:
             fin = dict(rank=f["rank_a"], rank_f=f["rank_fa"], rating=f["rating"], mu=f["rating"], sigma=0.0, n=f["n"],
-                       active=bool(f["active"]), idle=f["idle"], last=f["last"])
+                       active=bool(f["active"]), idle=f["idle"], last=f["last"],
+                       sd=f["sd"] if "sd" in f.keys() else None, rank_lo=f["rank_lo"] if "rank_lo" in f.keys() else None,
+                       rank_hi=f["rank_hi"] if "rank_hi" in f.keys() else None)
         # rang officiel de fin de mois (vide les mois où le pilote est inactif)
         rank_pts = [dict(m=r["month"], r=r["rank_a"], f=r["rank_fa"], v=round(r["rating"], 1), a=r["active"],
                          n=r["n_active"], nf=r["n_active_f"])

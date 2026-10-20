@@ -157,13 +157,16 @@ def render_site(out, cfg, out_dir, build_date=None):
     tpl = env.get_template("ranking.html")
     for idx, mth in enumerate(months):
         rows = mth.rows
-        hi = max((r["mu"] + cfg.z * r["sigma"] for r in rows), default=1.0)
+        hi = max((r["mu"] + (r["sd"] if elo else cfg.z * r["sigma"]) for r in rows), default=1.0)
         step = 100 if elo else 10
         hi = math.ceil(hi / step) * step
         lo = (math.floor(min((r["rating"] for r in rows), default=0.0) / step) * step) if elo else 0
         for r in rows:
-            r["a"] = _pct(r["rating"], lo, hi); r["b"] = _pct(r["mu"], lo, hi)
-            r["c"] = _pct(r["mu"] + cfg.z * r["sigma"], lo, hi)
+            if elo:     # barre : rating ± 1 écart type
+                r["a"] = _pct(r["rating"] - r["sd"], lo, hi); r["b"] = _pct(r["rating"], lo, hi); r["c"] = _pct(r["rating"] + r["sd"], lo, hi)
+            else:
+                r["a"] = _pct(r["rating"], lo, hi); r["b"] = _pct(r["mu"], lo, hi)
+                r["c"] = _pct(r["mu"] + cfg.z * r["sigma"], lo, hi)
         prev_m = months[idx - 1] if idx else None
         next_m = months[idx + 1] if idx + 1 < len(months) else None
         ps = max(1, cfg.page_size)
@@ -273,9 +276,10 @@ def render_site(out, cfg, out_dir, build_date=None):
     with open(out_dir / "exports" / "classement_mensuel.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(["mois", "rang", "civlid", "pilote", "nation", "rating", "mu", "sigma", "competitions",
-                    "derniere_competition", "actif"])
+                    "derniere_competition", "actif", "incertitude", "rang_probable_min", "rang_probable_max"])
         for m in months:
             for r in m.rows:
                 w.writerow([m.key, r["rank_a"] or "", r["civlid"], r["name"], r["nation"], round(r["rating"], 3),
-                            round(r["mu"], 3), round(r["sigma"], 3), r["n"], r["last"], int(r["active"])])
+                            round(r["mu"], 3), round(r["sigma"], 3), r["n"], r["last"], int(r["active"]),
+                            round(r["sd"], 1), r.get("rank_lo") or "", r.get("rank_hi") or ""])
     return out_dir

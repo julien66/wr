@@ -31,6 +31,19 @@ Les pages de compétition montrent, par pilote, la part de duels gagnés et la p
 
 Options : `python build.py ... --k 48 --boost 2`. L'ancien moteur reste disponible : `--engine openskill` (nécessite `pip install "openskill>=6.1.1"`, Python ≥ 3.10).
 
+## Incertitude (± affiché à côté du rating)
+
+Le moteur Elo ne calcule pas d'incertitude ; elle est ajoutée à l'affichage, sans changer le classement. Pour chaque pilote :
+`σ = √(115² + 215²/(n + 0,5) + 20² × t)`, avec n le nombre de compétitions « effectif » (celui qui sert à K) et t les mois depuis la
+dernière compétition : ±210 après une compétition, ±133 après dix, jamais moins de ±115. Le rang probable est le rang qu'aurait le pilote
+avec rating − σ et rating + σ, les autres restant en place (actifs seulement ; colonnes `sd`, `rank_lo`, `rank_hi` de `monthly`).
+
+Calage par simulation : des pilotes fictifs au niveau connu (niveau de départ = rating final réel, puis marche aléatoire de 20 points par mois)
+courent exactement les 2 241 compétitions de la base ; chaque résultat = niveau + bruit normal de 290 points. Ce réglage reproduit les
+74,9 % de duels bien prédits des vraies données et l'écart type des variations de rating sur 12 mois des vétérans (44 points simulés,
+46 réels). On mesure ensuite l'écart entre le rating calculé et le vrai niveau, et on ajuste la formule (erreur relative < 5 %).
+Le plancher de ±115 vient du K élevé (102) : même un vétéran bouge beaucoup à chaque compétition. Réglages : `elo_sd` dans `pgrank/config.py`.
+
 ## Utilisation
 
 ```bash

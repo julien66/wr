@@ -290,3 +290,9 @@ footer p:first-child a { margin-right: 0; }
 .leadchart .lb { font: 600 11.5px var(--sans); fill: var(--ink); }
 .leadchart .dot { fill: var(--accent, #3b3bd6); stroke: var(--bg, #fff); stroke-width: 2; }
 table.leaders { max-width: 760px; }
+
+/* Elo : incertitude (± 1 écart type) */
+.rt small.sd{display:block;font-size:.7em;font-weight:400;color:var(--muted);line-height:1.1}
+.rt small.sd.hi{font-style:italic;opacity:.75}
+.band.sd::before{background:var(--accent-soft)}
+tr.off .band.sd::before{background:var(--rule)}

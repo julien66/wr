@@ -80,6 +80,19 @@ def _openskill_model(cfg):
     return getattr(osk_models, cfg.model)(**cfg.model_params)
 
 
+def uncertainty(rating, neff, idle, active, cfg):
+    """Elo : écart type du rating (points) et intervalle de rang à ± 1 écart type parmi les pilotes actifs.
+    rang_lo = 1 + nombre d'actifs au-dessus de rating + σ ; rang_hi = 1 + nombre d'autres actifs au-dessus de rating − σ."""
+    p = cfg.elo_sd
+    sd = np.sqrt(p["floor"] ** 2 + p["new"] ** 2 / (neff + p["c"]) + p["drift"] ** 2 * np.maximum(idle, 0.0))
+    act = np.sort(rating[active])                       # croissant
+    n_act = len(act)
+    above = lambda x: n_act - np.searchsorted(act, x, side="right")   # actifs strictement au-dessus de x
+    lo = 1 + above(rating + sd)
+    hi = np.maximum(above(rating - sd) - active, 0) + 1   # sans compter le pilote lui-même
+    return sd, lo, hi
+
+
 def run(comps, pilots, cfg: Config, sink=None) -> Output:
     """sink(month) : si fourni, reçoit chaque classement mensuel complet (tous les pilotes) puis la liste est vidée
     pour ne pas la garder en mémoire (utilisé pour écrire la base SQLite)."""
@@ -220,6 +233,8 @@ def run(comps, pilots, cfg: Config, sink=None) -> Output:
             rank_pos = np.empty(n, dtype=np.int64); rank_pos[order] = np.arange(1, n + 1)
             idle_m = (m_end - last_end[:n]) / DAYS_PER_MONTH
             active = idle_m <= cfg.inactive_after_months
+            neff_m = neff[:n] * 0.5 ** (np.maximum(idle_m - cfg.inactive_after_months, 0.0) / cfg.elo_idle_half_life)
+            sd_m, rk_lo, rk_hi = uncertainty(ordv, neff_m, idle_m, active, cfg) if elo else (cfg.z * sigma[:n], None, None)
             # rang officiel : les inactifs ne prennent pas de place (rank_a = 0 pour eux)
             act_ord = active[order]
             rank_a = np.zeros(n, dtype=np.int64); rank_a[order] = np.where(act_ord, np.cumsum(act_ord), 0)
@@ -233,7 +248,9 @@ def run(comps, pilots, cfg: Config, sink=None) -> Output:
                     "rating": float(ordv[i]), "mu": float(mu[i]), "sigma": float(sigma[i]),
                     "n": int(n_comps[i]), "active": bool(active[i]),
                     "last": dt.date.fromordinal(int(last_end[i])).isoformat(),
-                    "idle": float(idle_m[i]), "move": None if pr is None or ra is None else pr - ra,
+                    "idle": float(idle_m[i]), "neff": float(neff_m[i]), "sd": float(sd_m[i]),
+                    "rank_lo": int(rk_lo[i]) if ra and rk_lo is not None else None,
+                    "rank_hi": int(rk_hi[i]) if ra and rk_hi is not None else None, "move": None if pr is None or ra is None else pr - ra,
                 })
             mth_obj = Month(f"{y:04d}-{m:02d}", y, m, rows, n, int(active.sum()), done)
             if sink is not None:
@@ -256,6 +273,8 @@ def run(comps, pilots, cfg: Config, sink=None) -> Output:
         for i in range(n):
             final[civ_by_idx[i]] = {"rank": int(rank_pos[i]), "rank_a": int(rank_a[i]) or None, "rating": float(ordv[i]), "mu": float(mu[i]),
                                     "sigma": float(sigma[i]), "n": int(n_comps[i]), "active": bool(active[i]),
-                                    "idle": float(idle_m[i]),
+                                    "idle": float(idle_m[i]), "neff": float(neff_m[i]), "sd": float(sd_m[i]),
+                                    "rank_lo": int(rk_lo[i]) if rank_a[i] and rk_lo is not None else None,
+                                    "rank_hi": int(rk_hi[i]) if rank_a[i] and rk_hi is not None else None,
                                     "last": dt.date.fromordinal(int(last_end[i])).isoformat()}
     return Output(traces, months, pilots, metrics, cfg, model, final, months[-1].key if months else "")

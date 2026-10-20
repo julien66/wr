@@ -12,6 +12,9 @@ class Config:
     # même classement que (400, 64), mais étiré pour que les meilleurs approchent 2800 comme aux échecs.
     elo_params: dict = field(default_factory=lambda: {"k": 102.4, "boost": 4.0, "scale": 640.0})
     elo_idle_half_life: float = 18.0   # après le seuil d'inactivité, le nombre de compétitions « effectif » est divisé par 2 tous les N mois
+    # Incertitude affichée (Elo, ± 1 écart type) : σ² = floor² + new²/(n + c) + drift² × mois sans compétition,
+    # n = nombre de compétitions « effectif ». Valeurs calées par simulation (voir README, « Incertitude »).
+    elo_sd: dict = field(default_factory=lambda: {"floor": 115.0, "new": 215.0, "c": 0.5, "drift": 20.0})
     # --- Modèle OpenSkill (si engine="openskill") ---
     # Paramètres passés tels quels à openskill.models.<model>(**model_params).
     # Vide = valeurs par défaut de la bibliothèque : mu=25, sigma=25/3, beta=25/6, kappa=1e-4, tau=25/300,
