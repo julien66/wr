@@ -220,23 +220,27 @@ def run(comps, pilots, cfg: Config, sink=None) -> Output:
             rank_pos = np.empty(n, dtype=np.int64); rank_pos[order] = np.arange(1, n + 1)
             idle_m = (m_end - last_end[:n]) / DAYS_PER_MONTH
             active = idle_m <= cfg.inactive_after_months
+            # rang officiel : les inactifs ne prennent pas de place (rank_a = 0 pour eux)
+            act_ord = active[order]
+            rank_a = np.zeros(n, dtype=np.int64); rank_a[order] = np.where(act_ord, np.cumsum(act_ord), 0)
             rows = []
             for pos, i in enumerate(order if full else order[:cfg.top_n], 1):
                 civ = civ_by_idx[i]
                 pr = None if prev_rank is None or i >= len(prev_rank) or prev_rank[i] == 0 else int(prev_rank[i])
+                ra = int(rank_a[i]) or None
                 rows.append({
-                    "rank": pos, "civlid": civ, "name": pilots[civ][0], "nation": pilots[civ][1],
+                    "rank": pos, "rank_a": ra, "civlid": civ, "name": pilots[civ][0], "nation": pilots[civ][1],
                     "rating": float(ordv[i]), "mu": float(mu[i]), "sigma": float(sigma[i]),
                     "n": int(n_comps[i]), "active": bool(active[i]),
                     "last": dt.date.fromordinal(int(last_end[i])).isoformat(),
-                    "idle": float(idle_m[i]), "move": None if pr is None else pr - pos,
+                    "idle": float(idle_m[i]), "move": None if pr is None or ra is None else pr - ra,
                 })
             mth_obj = Month(f"{y:04d}-{m:02d}", y, m, rows, n, int(active.sum()), done)
             if sink is not None:
                 sink(mth_obj)
                 mth_obj.rows = []
             months.append(mth_obj)
-            prev_rank = np.zeros(cap, dtype=np.int64); prev_rank[:n] = rank_pos
+            prev_rank = np.zeros(cap, dtype=np.int64); prev_rank[:n] = rank_a
 
     def summarize(key):
         d = acc[key]
@@ -250,7 +254,7 @@ def run(comps, pilots, cfg: Config, sink=None) -> Output:
     final = {}
     if months:
         for i in range(n):
-            final[civ_by_idx[i]] = {"rank": int(rank_pos[i]), "rating": float(ordv[i]), "mu": float(mu[i]),
+            final[civ_by_idx[i]] = {"rank": int(rank_pos[i]), "rank_a": int(rank_a[i]) or None, "rating": float(ordv[i]), "mu": float(mu[i]),
                                     "sigma": float(sigma[i]), "n": int(n_comps[i]), "active": bool(active[i]),
                                     "idle": float(idle_m[i]),
                                     "last": dt.date.fromordinal(int(last_end[i])).isoformat()}

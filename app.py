@@ -264,13 +264,17 @@ def create_app(db_path, proxy=False):
 
     # ---------------------------------------------------------------- classement mensuel
     def ranking(key, page, sex):
+        """Classement d'un mois. Le rang officiel (rank_a / rank_fa) ne compte que les pilotes actifs.
+        Avec ?actifs=0, les inactifs sont aussi listés, à la place que leur niveau leur donnerait, mais sans numéro."""
         actifs = actifs_arg()
         if key not in mkeys:
             abort(404)
         mrow = db().execute("SELECT * FROM months WHERE key=?", (key,)).fetchone()
         i = mkeys.index(key)
-        col = ("rank_fa" if actifs else "rank_f") if sex else ("rank_a" if actifs else "rank")
+        num = "rank_fa" if sex else "rank_a"                       # numéro affiché (rang officiel)
+        col = num if actifs else ("rank_f" if sex else "rank")      # ordre et pagination
         total = (mrow["n_active_f"] if actifs else mrow["n_rated_f"]) if sex else (mrow["n_active"] if actifs else mrow["n_rated"])
+        n_ranked = mrow["n_active_f"] if sex else mrow["n_active"]  # pilotes numérotés
         nat = nation_arg()
         n_act_nat = 0
         nations = db().execute(
@@ -280,32 +284,37 @@ def create_app(db_path, proxy=False):
             total = next((r["n"] for r in nations if r["nat"] == nat), 0)
             n_act_nat = db().execute(
                 f"SELECT COUNT(*) FROM monthly m JOIN pilots p USING(civlid) WHERE m.month=? AND p.nation=? "
-                f"AND m.{col} IS NOT NULL AND m.active=1", (key, nat)).fetchone()[0]
+                f"AND m.{num} IS NOT NULL", (key, nat)).fetchone()[0]
+            n_ranked = n_act_nat
+        # liste du mois (ou de la nation) : pos = place dans la liste affichée, nr = rang officiel (actifs seulement)
+        if nat:
+            base = (f"SELECT * FROM (SELECT m.*, p.name, p.nation, ROW_NUMBER() OVER w AS pos, "
+                    f"CASE WHEN m.{num} IS NOT NULL THEN COUNT(m.{num}) OVER w END AS nr "
+                    f"FROM monthly m JOIN pilots p USING(civlid) WHERE m.month=? AND p.nation=? AND m.{col} IS NOT NULL "
+                    f"WINDOW w AS (ORDER BY m.{col} ROWS UNBOUNDED PRECEDING))")
+            args = (key, nat)
+        else:
+            base = (f"SELECT m.*, p.name, p.nation, m.{col} AS pos, m.{num} AS nr FROM monthly m JOIN pilots p USING(civlid) "
+                    f"WHERE m.month=? AND m.{col} IS NOT NULL")
+            args = (key,)
         n_pages = max(1, math.ceil(total / PAGE_SIZE))
-        # saut direct à un rang : ?rank=600
+        # saut direct à un rang officiel : ?rank=600
         want = request.args.get("rank", type=int)
-        if want and 1 <= want <= total:
-            p = (want - 1) // PAGE_SIZE + 1
-            name = f"/ranking/{key}.html" if p == 1 else f"/ranking/{key}-p{p}.html"
-            return redirect(f"{name}{qs_of(sex, actifs)}#r{want}")
+        if want and 1 <= want <= n_ranked:
+            hit = db().execute(f"SELECT pos FROM ({base}) WHERE nr=?", (*args, want)).fetchone()
+            if hit:
+                p = (hit["pos"] - 1) // PAGE_SIZE + 1
+                name = f"/ranking/{key}.html" if p == 1 else f"/ranking/{key}-p{p}.html"
+                return redirect(f"{name}{qs_of(sex, actifs)}#r{want}")
         if page > n_pages:
             abort(404)
         lo_r, hi_r = (page - 1) * PAGE_SIZE + 1, page * PAGE_SIZE
         rows = []
-        if nat:      # rang au sein de la nation, calculé à la volée dans l'ordre du classement choisi
-            cur = db().execute(
-                f"SELECT * FROM (SELECT m.*, p.name, p.nation, ROW_NUMBER() OVER (ORDER BY m.{col}) AS nr "
-                f"FROM monthly m JOIN pilots p USING(civlid) WHERE m.month=? AND p.nation=? AND m.{col} IS NOT NULL) "
-                f"WHERE nr BETWEEN ? AND ? ORDER BY nr", (key, nat, lo_r, hi_r))
-        else:
-            cur = db().execute(
-                f"SELECT m.*, p.name, p.nation FROM monthly m JOIN pilots p USING(civlid) "
-                f"WHERE m.month=? AND m.{col} BETWEEN ? AND ? ORDER BY m.{col}", (key, lo_r, hi_r))
-        for r in cur:
+        for r in db().execute(f"SELECT * FROM ({base}) WHERE pos BETWEEN ? AND ? ORDER BY pos", (*args, lo_r, hi_r)):
             d = dict(r)
-            d["wrank"] = d[col]
-            d["rank"] = d["nr"] if nat else d[col]
-            d["move"] = None if (actifs or nat) else (d["move_f"] if sex else d["move"])
+            d["wrank"] = d[num]
+            d["rank_a"] = d["nr"]
+            d["move"] = None if nat else (d["move_f"] if sex else d["move"])
             d["mu"], d["sigma"] = d["rating"], 0.0
             d["a"], d["b"], d["c"] = (R._pct(d["rating"], mrow["lo"], mrow["hi"]),) * 3
             rows.append(d)
@@ -326,7 +335,7 @@ def create_app(db_path, proxy=False):
             nat=nat, qs_nonat=qs_of(sex, actifs, ""),
             picker=R.build_picker(months, "/ranking/", key, qs, g.loc),
             pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc),
-            pg=page, n_pages=n_pages, first=lo_r, last=lo_r + len(rows) - 1, n_shown=total,
+            pg=page, n_pages=n_pages, first=lo_r, last=lo_r + len(rows) - 1, n_shown=total, n_ranked=n_ranked,
             comps=comps, title=g.loc.month_label(mrow["year"], mrow["month"]) + (" – " + g.loc.gettext("féminin") if sex else "") + (" – " + nat if nat else "")
             + (" " + g.loc.gettext("(page {n})", n=page) if page > 1 else ""))
 
@@ -414,16 +423,18 @@ def create_app(db_path, proxy=False):
         f = db().execute("SELECT * FROM monthly WHERE month=? AND civlid=?", (mkeys[-1], civ)).fetchone()
         fin = None
         if f:
-            fin = dict(rank=f["rank"], rank_f=f["rank_f"], rating=f["rating"], mu=f["rating"], sigma=0.0, n=f["n"],
+            fin = dict(rank=f["rank_a"], rank_f=f["rank_fa"], rating=f["rating"], mu=f["rating"], sigma=0.0, n=f["n"],
                        active=bool(f["active"]), idle=f["idle"], last=f["last"])
-        rank_pts = [dict(m=r["month"], r=r["rank"], f=r["rank_f"], v=round(r["rating"], 1), a=r["active"],
-                         n=r["n_rated"], nf=r["n_rated_f"])
+        # rang officiel de fin de mois (vide les mois où le pilote est inactif)
+        rank_pts = [dict(m=r["month"], r=r["rank_a"], f=r["rank_fa"], v=round(r["rating"], 1), a=r["active"],
+                         n=r["n_active"], nf=r["n_active_f"])
                     for r in db().execute(
-                        "SELECT m.month, m.rank, m.rank_f, m.rating, m.active, mo.n_rated, mo.n_rated_f FROM monthly m "
+                        "SELECT m.month, m.rank_a, m.rank_fa, m.rating, m.active, mo.n_active, mo.n_active_f FROM monthly m "
                         "JOIN months mo ON mo.key=m.month WHERE m.civlid=? ORDER BY m.month", (civ,))]
         best = None
-        if rank_pts:
-            b = min(rank_pts, key=lambda x: (x["r"], x["m"]))
+        ranked = [x for x in rank_pts if x["r"]]
+        if ranked:
+            b = min(ranked, key=lambda x: (x["r"], x["m"]))
             best = {"r": b["r"], "m": b["m"], "v": b["v"]}
             bf = [x for x in rank_pts if x["f"]]
             best_f = ({"r": (c := min(bf, key=lambda x: (x["f"], x["m"])))["f"], "m": c["m"]} if bf else None)
@@ -441,8 +452,8 @@ def create_app(db_path, proxy=False):
                 "now": _month_end(*map(int, mkeys[-1].split("-"))).isoformat(), "pts": pts}
         js = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
         return render_template("pilot.html", **common, page="pilot", title=p["name"], name=p["name"], nation=p["nation"],
-                               civ=civ, fin=fin, st=st, table=list(reversed(table)), js=js, n_world=fm["n_rated"],
-                               n_world_f=fm["n_rated_f"], gender=p["gender"], qs="", rdata=rdata if rank_pts else None,
+                               civ=civ, fin=fin, st=st, table=list(reversed(table)), js=js, n_world=fm["n_active"],
+                               n_world_f=fm["n_active_f"], gender=p["gender"], qs="", rdata=rdata if rank_pts else None,
                                best=best, best_f=best_f)
 
     # ---------------------------------------------------------------- recherche
@@ -452,7 +463,7 @@ def create_app(db_path, proxy=False):
         if "idx" not in index_cache:
             last = mkeys[-1]
             rows = [dict(r) for r in db().execute(
-                "SELECT p.civlid, p.name, p.nation, p.gender, m.rank, m.rank_f, m.rating, m.active, m.n, m.last, "
+                "SELECT p.civlid, p.name, p.nation, p.gender, m.rank AS pos, m.rank_a AS rank, m.rank_fa AS rank_f, m.rating, m.active, m.n, m.last, "
                 "s.peak, s.n_comps, s.first_end, s.last_end FROM pilots p "
                 "LEFT JOIN monthly m ON m.civlid=p.civlid AND m.month=? "
                 "LEFT JOIN (SELECT civlid, MAX(mu_post) AS peak, COUNT(*) AS n_comps, MIN(end) AS first_end, MAX(end) AS last_end "
@@ -494,7 +505,7 @@ def create_app(db_path, proxy=False):
             for p in found:
                 out.append({"id": p["civlid"], "name": p["name"], "nation": p["nation"], "rank": p["rank"],
                             "rating": round(p["rating"]) if p["rating"] is not None else None,
-                            "active": bool(p["active"]) if p["rank"] else None, "f": p["gender"] == "F",
+                            "active": bool(p["active"]) if p["pos"] else None, "f": p["gender"] == "F",
                             "n": p["n_comps"], "years": [p["first_end"][:4], p["last_end"][:4]] if p["first_end"] else None})
         return jsonify({"items": out, "total": total})
 

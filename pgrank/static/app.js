@@ -66,7 +66,7 @@ function ordinal(n) {
   var fr = fmtInt;
   var RX = RD ? RD.pts.map(function (p) { return Date.UTC(+p.m.slice(0, 4), +p.m.slice(5, 7), 0); }) : [];   // fin de mois
   var byMonth = {}; if (RD) RD.pts.forEach(function (p) { byMonth[p.m] = p; });
-  var rBest = 0; if (RD) RD.pts.forEach(function (p, i) { if (p.r < RD.pts[rBest].r) rBest = i; });
+  var rBest = -1; if (RD) RD.pts.forEach(function (p, i) { if (p.r && (rBest < 0 || p.r < RD.pts[rBest].r)) rBest = i; });   // mois inactifs : pas de rang
   var showF = !!(RD && RD.fem && RD.pts.some(function (p) { return p.f; }));
   if (showF) { var kf = document.querySelector(".key .kf"); if (kf) kf.hidden = false; }
   var RTICKS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
@@ -139,7 +139,7 @@ function ordinal(n) {
       el("path", { "class": "rk", d: rline("r") }, svg);
     }
     el("path", { "class": "ln", d: path(R) }, svg);
-    if (RD) {
+    if (RD && rBest >= 0) {
       var bp = RD.pts[rBest], bx = sx(RX[rBest]), by = sr(bp.r);
       var bc = el("circle", { "class": "best", cx: bx, cy: by, r: 6 }, svg);
       var tt = document.createElementNS(NS, "title"); tt.textContent = T("js.best_rank_at", "Meilleur rang : {r}, {m}", { r: ordinal(bp.r), m: new Date(RX[rBest]).toLocaleDateString(I18N.lang, { month: "long", year: "numeric", timeZone: "UTC" }) }); bc.appendChild(tt);
@@ -166,7 +166,7 @@ function ordinal(n) {
             : "Rating " + f1(rt(p.m0, p.s0)) + " → " + f1(R[i])),
      (D.elo ? T("js.delta", "Écart {d}", { d: (p.m1 - p.m0 >= 0 ? "+" : "−") + fmtDec(Math.abs(p.m1 - p.m0), 1) })
             : "μ " + f1(p.m1) + ", σ " + p.s1.toFixed(2).replace(".", ",")),
-     (function () { var q = byMonth[p.d.slice(0, 7)]; return q ? T("js.month_rank", "Rang mondial en fin de mois : {r} sur {n}", { r: fr(q.r), n: fr(q.n) }) + (q.f ? " · " + T("js.female_rank", "féminin : {r}", { r: fr(q.f) }) : "") : null; })()].forEach(function (line) {
+     (function () { var q = byMonth[p.d.slice(0, 7)]; return q && !q.r ? T("js.month_unranked", "Inactif en fin de mois : sans rang") : q ? T("js.month_rank", "Rang mondial en fin de mois : {r} sur {n}", { r: fr(q.r), n: fr(q.n) }) + (q.f ? " · " + T("js.female_rank", "féminin : {r}", { r: fr(q.f) }) : "") : null; })()].forEach(function (line) {
       if (!line) return;
       var s = document.createElement("span"); s.textContent = line; tip.appendChild(s);
     });
@@ -215,7 +215,9 @@ function ordinal(n) {
       if (!list.length) { box.hidden = true; return; }
       box.innerHTML = list.map(function (p, i) {
         var meta = [p.nation, p.f ? "F" : "", p.years ? (p.years[0] === p.years[1] ? p.years[0] : p.years[0] + "–" + p.years[1]) : "", p.n ? T("js.comps_short", "{n} compét.", { n: p.n }) : ""].filter(Boolean).join(" · ");
-        var r = p.rank ? "<b>" + p.rank + "</b><small>" + (p.active ? "" : T("js.inactive", "inactif") + " · ") + p.rating + "</small>" : "<small>" + T("js.unranked", "hors classement") + "</small>";
+        var r = p.active === null ? "<small>" + T("js.unranked", "hors classement") + "</small>"
+          : p.rank ? "<b>" + p.rank + "</b><small>" + p.rating + "</small>"
+          : "<b>–</b><small>" + T("js.inactive", "inactif") + " · " + p.rating + "</small>";
         return '<li role="option" data-i="' + i + '"><a href="/pilot/' + p.id + '.html"><span class="sn">' + esc(p.name) + '<small>' + esc(meta) + '</small></span><span class="sr2">' + r + "</span></a></li>";
       }).join("") + '<li class="all"><a href="/search?q=' + encodeURIComponent(input.value) + '">' + (total > list.length ? T("js.see_all", "Voir les {n} résultats", { n: total }) : T("js.all_results", "Tous les résultats")) + '…</a></li>';
       box.hidden = false;

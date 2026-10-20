@@ -82,7 +82,7 @@ class Writer:
         self.con.executescript(SCHEMA)
         self.genders = genders
         self.removed = set(removed)
-        self.prev = {}      # civlid -> (rang, rang femmes) du mois précédent
+        self.prev = {}      # civlid -> (rang, rang femmes) officiels du mois précédent
 
     def month(self, mth):
         rows = mth.rows
@@ -99,7 +99,7 @@ class Writer:
                 rf = f_rank
                 nf += 1
                 nf_act += bool(r["active"])
-            ra = rfa = None                        # rang parmi les seuls pilotes actifs
+            ra = rfa = None                        # rang officiel : parmi les seuls pilotes actifs
             if r["active"]:
                 a_rank += 1
                 ra = a_rank
@@ -107,9 +107,9 @@ class Writer:
                     fa_rank += 1
                     rfa = fa_rank
             pr = self.prev.get(civ)
-            if fem and pr and pr[1]:
-                mf = pr[1] - rf
-            new_prev[civ] = (r["rank"], rf)
+            if rfa and pr and pr[1]:               # évolution du rang féminin (les inactifs n'en ont pas)
+                mf = pr[1] - rfa
+            new_prev[civ] = (ra, rfa)
             out.append((mth.key, r["rank"], rf, civ, r["rating"], r["n"], r["last"], int(r["active"]),
                         r["idle"], r["move"], mf, ra, rfa))
         self.prev = new_prev

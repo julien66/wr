@@ -206,6 +206,7 @@ def render_site(out, cfg, out_dir, build_date=None):
     # ---------- pages pilote ----------
     tpl = env.get_template("pilot.html")
     z = cfg.z
+    n_world = sum(f["active"] for f in out.final.values())
     for civ in pages:
         h = hist[civ]
         name, nation = out.pilots[civ]
@@ -223,13 +224,15 @@ def render_site(out, cfg, out_dir, build_date=None):
                   top10=sum(k <= 10 for k in ranks),
                   median_pct=float(np.median([x["pct"] for x in table])), best=min(ranks))
         fin = out.final.get(civ)
+        if fin:     # rang officiel : parmi les actifs (aucun pour un inactif)
+            fin = dict(fin, rank=fin["rank_a"])
         data = {"elo": elo, "z": z, "inactive": cfg.inactive_after_months, "last": fin["last"] if fin else None, "active": fin["active"] if fin else None,
                 "mu": fin["mu"] if fin else None, "sigma": fin["sigma"] if fin else None,
                 "now": _month_end(*map(int, out.final_month.split("-"))).isoformat(), "pts": pts}
         js = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
         html = tpl.render(**common, root="../", page="pilot", title=name, name=name, nation=nation, civ=civ,
                           fin=fin, st=st, table=list(reversed(table)), js=js,
-                          n_world=len(out.final))
+                          n_world=n_world)
         (out_dir / "pilot" / f"{civ}.html").write_text(_slim(html), encoding="utf-8")
 
     # ---------- liste des compétitions ----------
@@ -273,6 +276,6 @@ def render_site(out, cfg, out_dir, build_date=None):
                     "derniere_competition", "actif"])
         for m in months:
             for r in m.rows:
-                w.writerow([m.key, r["rank"], r["civlid"], r["name"], r["nation"], round(r["rating"], 3),
+                w.writerow([m.key, r["rank_a"] or "", r["civlid"], r["name"], r["nation"], round(r["rating"], 3),
                             round(r["mu"], 3), round(r["sigma"], 3), r["n"], r["last"], int(r["active"])])
     return out_dir

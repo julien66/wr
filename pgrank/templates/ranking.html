@@ -2,7 +2,7 @@
 {% block main %}
 <section class="hero">
   <h1>{{ month_label(month.year, month.month) }}{% if sex %} <span class="sub-h">{{ _("féminin") }}</span>{% endif %}</h1>
-  <p class="lede">{% if actifs %}{{ _("{n} pilotes actifs (les inactifs sont masqués : le rang est calculé parmi les actifs).", n=month.n_rated|fint) }}{% else %}{{ _("{n} pilotes classés, dont {a} actifs.", n=month.n_rated|fint, a=month.n_active|fint) }}{% endif %}
+  <p class="lede">{% if actifs %}{{ _("{n} pilotes actifs (les inactifs sont masqués : le rang est calculé parmi les actifs).", n=month.n_rated|fint) }}{% else %}{{ _("{n} pilotes classés ; {i} inactifs affichés à leur place, sans rang.", n=month.n_active|fint, i=(month.n_rated - month.n_active)|fint) }}{% endif %}
     {% if comps %}{{ _n("{n} compétition prise en compte ce mois-ci.", "{n} compétitions prises en compte ce mois-ci.", comps|length) }}{% else %}{{ _("Aucune compétition ce mois-ci : seuls les statuts d’activité ont évolué.") }}{% endif %}</p>
   <div class="monthnav">
     {% if prev_m %}<a class="step" href="{{ prefix }}{{ prev_m.key }}.html{{ qs }}" rel="prev" aria-label="{{ _('Mois précédent') }}">‹ {{ month_label(prev_m.year, prev_m.month) }}</a>{% else %}<span></span>{% endif %}
@@ -22,7 +22,7 @@
   </nav>
   <form class="goto" action="{{ prefix }}{{ month.key }}.html" method="get">
     {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}{% if not actifs %}<input type="hidden" name="actifs" value="0">{% endif %}{% if nat %}<input type="hidden" name="nation" value="{{ nat }}">{% endif %}
-    <label>{{ _("Aller au rang") }} <input type="number" name="rank" min="1" max="{{ n_shown }}" placeholder="600" required></label>
+    <label>{{ _("Aller au rang") }} <input type="number" name="rank" min="1" max="{{ n_ranked }}" placeholder="600" required></label>
     <button type="submit">{{ _("Aller") }}</button>
   </form>
 </section>
@@ -31,10 +31,10 @@
   {% if dyn %}<form class="gsearch inline" action="{{ root }}search" role="search"><input type="search" name="q" placeholder="{{ _('Chercher un pilote (tous les pilotes, tous les mois)') }}" aria-label="{{ _('Chercher un pilote') }}" autocomplete="off"><input type="hidden" name="go" value="1">{% if sex %}<input type="hidden" name="sex" value="F">{% endif %}</form>
   {% else %}<input type="search" id="q" placeholder="{{ _('Chercher un pilote ou un pays') }}" aria-label="{{ _('Chercher un pilote ou un pays') }}" data-filter="#board tbody tr">{% endif %}
   {% if dyn and nat %}<a class="chip toggle-off" href="{{ prefix }}{{ month.key }}.html{{ qs_nonat }}" aria-current="true" title="{{ _('Tous pays') }}">{{ nat }} ✕</a>{% endif %}
-  {% if dyn %}<a class="chip toggle-off" href="{{ prefix }}{{ month.key }}.html{{ qs_toggle }}"{% if actifs %} aria-current="true"{% endif %} title="{{ _('Retire les inactifs et renumérote le classement parmi les seuls actifs') }}">{{ '✓ ' if actifs }}{{ _("Masquer les inactifs") }}</a>
+  {% if dyn %}<a class="chip toggle-off" href="{{ prefix }}{{ month.key }}.html{{ qs_toggle }}"{% if actifs %} aria-current="true"{% endif %} title="{{ _('Retire de la liste les inactifs (ils n’ont pas de rang)') }}">{{ '✓ ' if actifs }}{{ _("Masquer les inactifs") }}</a>
   {% else %}<label class="check"><input type="checkbox" id="hide-off"> {{ _("Masquer les inactifs") }}</label>{% endif %}
 </section>
-{% if elo %}<p class="note">{{ _("Un pilote sans compétition depuis plus de {m} mois est grisé : son niveau est conservé, mais il redevient « provisoire » : ses prochains résultats le feront bouger plus vite.", m=cfg.inactive_after_months|round|int) }}
+{% if elo %}<p class="note">{{ _("Un pilote sans compétition depuis plus de {m} mois est inactif : il sort du classement (pas de rang, il ne prend la place de personne). S’il est affiché, il est grisé à la place que lui donnerait son niveau. À son retour, il redevient « provisoire » : ses prochains résultats le feront bouger plus vite.", m=cfg.inactive_after_months|round|int) }}
 {{ _("Le rating est un niveau Elo : à chaque compétition, un pilote gagne ou perd selon les pilotes qu’il a battus ou non, en tenant compte de leur niveau.") }}</p>
 {% else %}<p class="note">Un pilote sans compétition depuis plus de {{ cfg.inactive_after_months|round|int }} mois est grisé : son niveau est conservé, mais son incertitude sera relevée avant sa prochaine évaluation.
 La barre montre le niveau estimé : le point est μ, la partie foncée va du rating (μ − {{ cfg.z|round|int }}σ) à μ, la partie claire jusqu’à μ + {{ cfg.z|round|int }}σ.</p>{% endif %}
@@ -49,8 +49,8 @@ La barre montre le niveau estimé : le point est μ, la partie foncée va du rat
   </tr></thead>
   <tbody>
   {% for r in rows %}
-  <tr id="r{{ r.rank }}"{% if not r.active %} class="off"{% endif %}>
-    <td class="rk">{{ r.rank }}{% if nat %}<small class="wr" title="{{ _('Rang mondial') }}">{{ r.wrank }}</small>{% endif %}</td>
+  <tr{% if r.rank_a %} id="r{{ r.rank_a }}"{% else %} class="off"{% endif %}>
+    <td class="rk">{% if r.rank_a %}{{ r.rank_a }}{% if nat %}<small class="wr" title="{{ _('Rang mondial') }}">{{ r.wrank }}</small>{% endif %}{% else %}<span class="offrk" title="{{ _('Inactif : hors classement') }}">–</span>{% endif %}</td>
     <td class="mv hide-s{% if r.move %} {{ 'up' if r.move > 0 else 'down' }}{% endif %}">{% if r.move %}{{ '▲' if r.move > 0 else '▼' }}{{ r.move|abs }}{% endif %}</td>
     <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}.html">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> {% if dyn and r.nation %}<a class="nat" href="{{ prefix }}{{ month.key }}.html{{ qs_nonat }}{{ '&' if qs_nonat else '?' }}nation={{ r.nation }}" title="{{ _('Classement') }} {{ r.nation }}">{{ r.nation }}</a>{% else %}<span class="nat">{{ r.nation }}</span>{% endif %}</td>
     <td class="num rt">{{ r.rating|f1 if not elo else r.rating|round|int }}</td>

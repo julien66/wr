@@ -5,7 +5,7 @@ Génère un site statique à partir de la base SQLite des résultats CIVL :
 - un **classement par mois** (état des niveaux à la fin de chaque mois) ;
 - une **page par compétition** qui montre, pilote par pilote, le calcul : rang réel, rang attendu, niveau avant et après, écart ;
 - une **page par pilote** : rang mondial, victoires/top 10/place médiane, **graphique de l'évolution du niveau compétition par compétition** et tableau des résultats (pilotes avec au moins `pilot_min_comps` = 3 compétitions) ;
-- les pilotes inactifs (plus de 18 mois) restent classés mais **grisés** ; ils redeviennent « provisoires » (K relevé) à leur retour.
+- les pilotes inactifs (plus de 18 mois sans compétition) **sortent du classement** : ils n'ont pas de rang et ne prennent la place de personne ; avec « Afficher les inactifs » ils apparaissent grisés et sans numéro à la place que leur niveau leur donnerait ; ils redeviennent « provisoires » (K relevé) à leur retour.
 
 ## Moteur par défaut : Elo multijoueur
 
@@ -46,7 +46,7 @@ correctement sur les mois suivants.
 
 ## Règles communes aux deux moteurs
 
-- **Inactivité** : au-delà de `inactive_after_months` (18) sans compétition, le pilote est grisé ; avant son
+- **Inactivité** : au-delà de `inactive_after_months` (18) sans compétition, le pilote sort du classement (pas de rang, grisé s'il est affiché) ; avant son
   prochain calcul, σ est relevé de `idle_tau`² par mois au-delà du seuil (plafonné au σ initial du modèle).
 - **Sélection** : compétitions de moins de `min_field` (5) pilotes ignorées ; un pilote à 0 point est classé
   ex æquo dernier.
