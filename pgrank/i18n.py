@@ -3,6 +3,7 @@
 Ajouter une langue : créer pgrank/i18n/<code>.json (copie de en.json traduite) et déclarer le code dans LANGS.
 Les clés manquantes retombent sur le texte français : une traduction incomplète ne casse rien.
 """
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -30,6 +31,11 @@ ABBR = {
     "es": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
 }
 NBSP = " "
+
+
+def pub_month(y, m):
+    """Mois de publication du classement de clé (y, m) : le mois suivant."""
+    return (y + 1, 1) if m == 12 else (y, m + 1)
 
 
 class Locale:
@@ -108,9 +114,35 @@ class Locale:
             return f"{a.day}–{b.day} {ab[a.month - 1]} {a.year}" if self.lang in ("fr", "es") else f"{ab[a.month - 1]} {a.day}–{b.day}, {a.year}"
         return f"{self.date(a)} – {self.date(b)}"
 
+    # Un classement mensuel est identifié en interne par le mois des compétitions qu'il intègre (clé « 2026-09 »),
+    # mais il est publié le 1er du mois suivant et porte ce nom, comme le WPRS : « 2026-09 » s'affiche « Octobre 2026 ».
     def month_label(self, y, m):
-        name = MONTHS[self.lang][m - 1]
-        return f"{name.capitalize()} {y}"
+        """Nom d'un classement (mois de publication) à partir de sa clé (mois des compétitions)."""
+        py, pm = pub_month(y, m)
+        return f"{MONTHS[self.lang][pm - 1].capitalize()} {py}"
+
+    def data_month(self, y, m):
+        """Mois des compétitions intégrées : « septembre 2026 »."""
+        return f"{MONTHS[self.lang][m - 1]} {y}"
+
+    def long_date(self, d):
+        """Date en toutes lettres : « 1er octobre 2026 », « October 1, 2026 », « 1. Oktober 2026 », « 1 de octubre de 2026 »."""
+        name = MONTHS[self.lang][d.month - 1]
+        if self.fr:
+            return f"{'1er' if d.day == 1 else d.day} {name} {d.year}"
+        if self.lang == "es":
+            return f"{d.day} de {name} de {d.year}"
+        if self.lang == "de":
+            return f"{d.day}. {name} {d.year}"
+        return f"{name} {d.day}, {d.year}"
+
+    def pub_date(self, y, m):
+        """Date de publication du classement de clé (y, m) : le 1er du mois suivant."""
+        return self.long_date(dt.date(*pub_month(y, m), 1))
+
+    def cutoff_date(self, y, m):
+        """Dernier jour pris en compte : fin du mois des compétitions."""
+        return self.long_date(dt.date(*pub_month(y, m), 1) - dt.timedelta(days=1))
 
     def iso_my(self, iso):
         y, m, _ = iso.split("-")
@@ -122,7 +154,9 @@ class Locale:
         return s.lower() if self.lang in ("fr", "es") else s
 
     def key_my(self, k):
-        return self.iso_my(k + "-01")
+        """Nom d'un classement à partir de sa clé « 2026-09 » → « octobre 2026 » (minuscule en fr/es)."""
+        y, m = map(int, k.split("-"))
+        return self.lower_month(self.month_label(y, m))
 
     def abbr(self, month):
         return ABBR[self.lang][month - 1]
