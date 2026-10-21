@@ -166,8 +166,13 @@ footer { margin-top: 56px; padding-block: 22px 40px; border-top: 1px solid var(-
 footer p { margin: 4px 0; } footer a { margin-right: 16px; }
 
 /* ---------- petits écrans ---------- */
+.show-s { display: none; }
 @media (max-width: 720px) {
   .hide-s { display: none; }
+  .calc small.show-s { display: block; }
+  .calc .pl { min-width: 0; }
+  .calc td, .calc th { padding-inline: 5px; }
+  .calc .pl .nat { margin-left: 4px; }
   .bd { width: 34%; min-width: 84px; }
   .rk { font-size: 19px; }
   .clist li { grid-template-columns: 1fr; }
@@ -339,3 +344,46 @@ tr.off .band.sd::before{background:var(--rule)}
 }
 .prose .formula.cmd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
 footer p.oss a { margin-right: 0; }
+
+/* ---------- explications repliables (classement) ---------- */
+.explain { max-width: 84ch; margin: 14px 0 6px; color: var(--muted); font-size: 13.5px; }
+.explain summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; width: max-content; max-width: 100%; }
+.explain summary::marker { content: "ⓘ  "; }
+.explain[open] summary { margin-bottom: 6px; }
+.explain p { margin: 0 0 8px; }
+
+/* ---------- choix du pays (classement) ---------- */
+.natsel select { font: inherit; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); max-width: 11em; }
+
+/* ---------- langue dans l'en-tête ---------- */
+.langsw { position: relative; font-size: 13px; font-weight: 600; }
+.langsw summary { cursor: pointer; list-style: none; color: var(--muted); padding: 5px 8px; border: 1px solid var(--rule); border-radius: 4px; }
+.langsw summary::-webkit-details-marker { display: none; }
+.langsw summary::after { content: " ▾"; font-size: 11px; }
+.langsw summary:hover { color: var(--ink); }
+.langsw div { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; display: flex; flex-direction: column; min-width: 9em;
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+.langsw div a { padding: 6px 10px; border-radius: 4px; text-decoration: none; color: var(--ink); font-weight: 500; }
+.langsw div a:hover { background: var(--bg); }
+.langsw div a[aria-current="true"] { font-weight: 700; color: var(--accent); }
+@media (max-width: 720px) {
+  .top .brand { order: 0; }
+  .top .langsw { order: 1; margin-left: auto; }
+  .top nav { order: 2; flex-basis: 100%; }
+  .top .gsearch { order: 3; flex: 1 1 100%; margin-left: 0; }
+  .top .gsearch input { width: 100%; min-width: 0; }
+}
+
+/* ---------- liste des compétitions ---------- */
+.years { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 22px; }
+.years a { padding: 3px 8px; border: 1px solid var(--rule); border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 600; }
+.years a:hover { background: var(--paper); }
+.cfilters select { font: inherit; padding: 7px 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); color: var(--ink); }
+.cfilters .note { margin: 0; }
+.yblock { scroll-margin-top: 12px; }
+.yblock summary { cursor: pointer; display: flex; align-items: baseline; gap: 14px; margin-top: 28px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); list-style: none; }
+.yblock summary::-webkit-details-marker { display: none; }
+.yblock summary::before { content: "▸"; color: var(--muted); font-size: 14px; }
+.yblock[open] summary::before { content: "▾"; }
+.yblock summary .yh { margin: 0; }
+.yblock summary span { color: var(--muted); font-size: 13.5px; }

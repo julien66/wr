@@ -50,8 +50,44 @@ function ordinal(n) {
     toggle.addEventListener("change", function () { store.set("hideOff", toggle.checked ? "1" : "0"); apply(); });
   }
 
+  // listes déroulantes qui s'appliquent tout de suite (pays du classement)
+  document.querySelectorAll("select[data-autosubmit]").forEach(function (sel) {
+    sel.addEventListener("change", function () { sel.form.submit(); });
+  });
+
+  // Liste des compétitions : années repliables, filtres texte / type / taille du plateau.
+  var list = document.getElementById("list"), cq = document.getElementById("cq");
+  if (list && cq) {
+    var kind = document.getElementById("ckind"), size = document.getElementById("csize"), count = document.getElementById("ccount");
+    var blocks = Array.prototype.slice.call(list.querySelectorAll("details.yblock"));
+    var initOpen = blocks.map(function (d) { return d.open; });
+    var openHash = function () {
+      var d = location.hash && document.getElementById(location.hash.slice(1));
+      if (d && d.tagName === "DETAILS") { d.open = true; d.scrollIntoView(); }
+    };
+    window.addEventListener("hashchange", openHash);
+    openHash();
+    var filter = function () {
+      var q = cq.value.trim().toLowerCase(), k = kind.value, n = +size.value, any = q || k || n, shown = 0;
+      blocks.forEach(function (d, i) {
+        var hits = 0;
+        d.querySelectorAll("li").forEach(function (li) {
+          var ok = (!q || li.textContent.toLowerCase().indexOf(q) !== -1) && (!k || li.dataset.kind === k) && (+li.dataset.n >= n);
+          li.style.display = ok ? "" : "none";
+          if (ok) hits++;
+        });
+        shown += hits;
+        d.style.display = hits ? "" : "none";
+        d.open = any ? hits > 0 : initOpen[i];
+      });
+      count.hidden = !any;
+      count.textContent = T("js.ncomps", "{n} compétition(s)", { n: fmtInt(shown) });
+    };
+    [cq, kind, size].forEach(function (el) { el.addEventListener(el === cq ? "input" : "change", filter); });
+  }
+
   document.addEventListener("click", function (e) {
-    document.querySelectorAll("details.picker[open]").forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute("open"); });
+    document.querySelectorAll("details.picker[open], details.langsw[open]").forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute("open"); });
   });
 })();
 

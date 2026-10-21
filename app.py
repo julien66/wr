@@ -14,6 +14,7 @@ import time as _time
 from collections import defaultdict, deque
 from pathlib import Path
 from types import SimpleNamespace as NS
+from urllib.parse import urlencode
 
 import numpy as np
 from flask import Flask, abort, g, jsonify, redirect, render_template, request, url_for
@@ -202,11 +203,18 @@ def create_app(db_path, proxy=False):
     def legal():
         return render_template("legal.html", **common, page="legal", title=g.loc.gettext("Mentions légales et données personnelles"), qs="")
 
+    def lang_href(code):
+        """Lien vers la même page dans une autre langue, en gardant les autres paramètres (sexe, pays...)."""
+        args = {k: v for k, v in request.args.items(multi=True) if k != "lang"}
+        args["lang"] = code
+        return request.path + "?" + urlencode(args)
+
     @app.context_processor
     def i18n_context():
         loc = g.loc
         return {"_": loc.gettext, "_h": loc.html, "_n": loc.ngettext, "lang": loc.lang, "langs": LANGS,
                 "month_label": loc.month_label, "pub_date": loc.pub_date, "cutoff_date": loc.cutoff_date, "data_month": loc.data_month, "show_leaders": SHOW_LEADERS, "mlc": loc.lower_month, "span_fr": loc.span,
+                "lang_href": lang_href,
                 "i18n_js": json.dumps({"lang": loc.lang, "t": loc.js_catalog()}, ensure_ascii=False).replace("</", "<\\/")}
 
     @app.context_processor
@@ -230,7 +238,7 @@ def create_app(db_path, proxy=False):
                  pilot_min_comps=meta["pilot_min_comps"], elo_params=meta["full_cfg"]["elo_params"])
     params = meta["params"]
     mkeys = [m.key for m in months]
-    app.jinja_env.globals.update(elo=True, cfg=cfg, dyn=True)
+    app.jinja_env.globals.update(elo=True, cfg=cfg, dyn=True, comp_kind=R.comp_kind)
     common = dict(pages=AllPages(removed), site_title=cfg.site_title, latest_key=mkeys[-1],
                   last_result=dt.date.fromisoformat(meta["last_result"]),
                   build_date=dt.date.fromisoformat(meta["build_date"]), params=params, root="/")
@@ -337,7 +345,7 @@ def create_app(db_path, proxy=False):
             prev_m=months[i - 1] if i else None, next_m=months[i + 1] if i + 1 < len(months) else None,
             prefix="/ranking/", qs=qs, sex=sex, actifs=actifs, genre_known=genre_known,
             qs_all=qs_of("", actifs), qs_f=qs_of("F", actifs), qs_toggle=qs_of(sex, not actifs),
-            nat=nat, qs_nonat=qs_of(sex, actifs, ""),
+            nat=nat, qs_nonat=qs_of(sex, actifs, ""), nations=nations,
             picker=R.build_picker(months, "/ranking/", key, qs, g.loc),
             pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc),
             pg=page, n_pages=n_pages, first=lo_r, last=lo_r + len(rows) - 1, n_shown=total, n_ranked=n_ranked,

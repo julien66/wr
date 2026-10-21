@@ -4,19 +4,35 @@
   <h1>{{ _("Compétitions") }}</h1>
   <p class="lede">{{ _("{n} compétitions, de la plus récente à la plus ancienne. Chaque page détaille le calcul pour chaque pilote.", n=n_comps|fint) }}</p>
 </section>
-<section class="tools">
-  <input type="search" id="q" placeholder="{{ _('Chercher une compétition') }}" aria-label="{{ _('Chercher une compétition') }}" data-filter="#list li">
+<nav class="years" aria-label="{{ _('Années') }}">
+  {% for year, items in years %}<a href="#y{{ year }}">{{ year }}</a>{% endfor %}
+</nav>
+<section class="tools cfilters" id="cfilters">
+  <input type="search" id="cq" placeholder="{{ _('Chercher une compétition') }}" aria-label="{{ _('Chercher une compétition') }}">
+  <label><span class="sr">{{ _("Type de compétition") }}</span><select id="ckind">
+    <option value="">{{ _("Tous types") }}</option>
+    <option value="pwc">{{ _("Coupe du monde (PWC)") }}</option>
+    <option value="champ">{{ _("Championnats du monde et continentaux") }}</option>
+  </select></label>
+  <label><span class="sr">{{ _("Taille du plateau") }}</span><select id="csize">
+    <option value="0">{{ _("Tous plateaux") }}</option>
+    <option value="50">{{ _("50 pilotes ou plus") }}</option>
+    <option value="100">{{ _("100 pilotes ou plus") }}</option>
+  </select></label>
+  <span class="note" id="ccount" role="status" hidden></span>
 </section>
 <div id="list">
 {% for year, items in years %}
-  <h2 class="yh">{{ year }}</h2>
-  <ul class="clist">
-  {% for t in items %}
-    <li><a href="{{ root }}competition/{{ t.comp.id }}.html">{{ t.comp.name }}</a>
-      <span class="when">{{ span_fr(t.comp.start, t.comp.end) }}</span>
-      <span class="num">{{ _("{n} pilotes", n=t.n_pilots) }}</span>{% if not t.rated %} <em>{{ _("hors calcul") }}</em>{% endif %}</li>
-  {% endfor %}
-  </ul>
+  <details class="yblock" id="y{{ year }}"{% if loop.index <= 2 %} open{% endif %}>
+    <summary><h2 class="yh">{{ year }}</h2> <span>{{ _n("{n} compétition", "{n} compétitions", items|length) }}</span></summary>
+    <ul class="clist">
+    {% for t in items %}
+      <li data-n="{{ t.n_pilots }}" data-kind="{{ comp_kind(t.comp.name) }}"><a href="{{ root }}competition/{{ t.comp.id }}.html">{{ t.comp.name }}</a>
+        <span class="when">{{ span_fr(t.comp.start, t.comp.end) }}</span>
+        <span class="num">{{ _("{n} pilotes", n=t.n_pilots) }}</span>{% if not t.rated %} <em>{{ _("hors calcul") }}</em>{% endif %}</li>
+    {% endfor %}
+    </ul>
+  </details>
 {% endfor %}
 </div>
 {% endblock %}
