@@ -12,7 +12,7 @@ import numpy as np
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .engine import _month_end
-from .i18n import Locale
+from .i18n import Locale, pub_month
 
 HERE = Path(__file__).parent
 MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
@@ -51,7 +51,7 @@ def span_fr(a, b):
 
 
 def month_label(y, m):
-    return f"{MONTHS[m - 1].capitalize()} {y}"
+    return Locale("fr").month_label(y, m)
 
 
 def iso_my(iso):
@@ -66,14 +66,15 @@ def _pct(v, lo, hi):
 def build_picker(months, prefix, current, qs="", loc=None):
     loc = loc or Locale("fr")
     """Sélecteur de mois : une ligne par année, douze cases (liens vers chaque classement)."""
-    have = {m.key for m in months}
-    years = sorted({m.year for m in months}, reverse=True)
+    # une case par mois de publication : le classement de clé 2025-12 est rangé en janvier 2026
+    by_pub = {pub_month(m.year, m.month): m.key for m in months}
+    years = sorted({y for y, _ in by_pub}, reverse=True)
     out = []
     for y in years:
         cells = []
         for mo in range(1, 13):
-            k = f"{y:04d}-{mo:02d}"
-            if k in have:
+            k = by_pub.get((y, mo))
+            if k:
                 cur = ' aria-current="page"' if k == current else ""
                 cells.append(f'<a href="{prefix}{k}.html{qs}"{cur}>{loc.abbr(mo).rstrip(".")}</a>')
             else:
@@ -120,6 +121,7 @@ def render_site(out, cfg, out_dir, build_date=None):
                       autoescape=select_autoescape(["html"]), trim_blocks=True, lstrip_blocks=True)
     fr = Locale("fr")
     env.globals["mlc"] = lambda s: s.lower()
+    env.globals.update(pub_date=fr.pub_date, cutoff_date=fr.cutoff_date, data_month=fr.data_month)
     env.filters.update(f1=f1, f2=f2, fint=fint, fdelta=fdelta, date_fr=date_fr, iso_my=iso_my, pct=fr.pct, pct1=fr.pct1)
     env.globals.update(elo=(cfg.engine == "elo"), cfg=cfg, span_fr=span_fr, month_label=month_label,
                        _=fr.gettext, _h=fr.html, _n=fr.ngettext, lang="fr")
@@ -202,7 +204,7 @@ def render_site(out, cfg, out_dir, build_date=None):
                 r["a"] = _pct(r["rt_pre"], lo, hi); r["b"] = _pct(r["rt_post"], lo, hi)
                 r["inflated"] = (r["idle"] > cfg.inactive_after_months) if elo else (r["sigma_pre"] > r["sigma_raw"] + 1e-9)
         html = tpl.render(**common, root="../", page="competition", t=t, c=t.comp, rows=rows,
-                          month_key=mkey, month_name=month_label(t.comp.end.year, t.comp.end.month),
+                          month_key=mkey, pub_date_k=fr.pub_date(t.comp.end.year, t.comp.end.month),
                           title=t.comp.name)
         (out_dir / "competition" / f"{t.comp.id}.html").write_text(_slim(html), encoding="utf-8")
 

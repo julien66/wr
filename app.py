@@ -20,7 +20,7 @@ from flask import Flask, abort, g, jsonify, redirect, render_template, request, 
 from jinja2 import ChoiceLoader, FileSystemLoader
 
 from pgrank import render as R
-from pgrank.i18n import LANGS, Locale, pick
+from pgrank.i18n import LANGS, Locale, pick, pub_month
 from pgrank.config import Config
 from pgrank.engine import _month_end
 from pgrank.search import PilotIndex, tokens
@@ -169,8 +169,9 @@ def create_app(db_path, proxy=False):
         pts = [(X(mkeys.index(m)), Y(rt)) for m, _, rt in seq]
         path = "".join(("M" if i == 0 or mkeys.index(seq[i][0]) != mkeys.index(seq[i - 1][0]) + 1 else "L") + f"{x:.1f},{y:.1f}"
                        for i, (x, y) in enumerate(pts))
-        years = sorted({int(m[:4]) for m in mkeys})
-        xt = [(X(mkeys.index(f"{y}-01")) if f"{y}-01" in mkeys else X(0), y) for y in years if y % 2 == 0 or len(years) < 12]
+        # graduations : classement de janvier de chaque année (clé décembre de l'année précédente)
+        years = sorted({pub_month(*map(int, m.split("-")))[0] for m in mkeys})
+        xt = [(X(mkeys.index(f"{y - 1}-12")) if f"{y - 1}-12" in mkeys else X(0), y) for y in years if y % 2 == 0 or len(years) < 12]
         yt = [(Y(v), v) for v in range(int(lo), int(hi) + 1, 100)]
         labels = [dict(x=X(mkeys.index(r["start"]) + (r["n"] - 1) / 2), y=Y(r["peak"]) - 8, text=r["name"].split()[-1], n=r["n"])
                   for r in reigns if r["n"] >= 18]
@@ -205,7 +206,7 @@ def create_app(db_path, proxy=False):
     def i18n_context():
         loc = g.loc
         return {"_": loc.gettext, "_h": loc.html, "_n": loc.ngettext, "lang": loc.lang, "langs": LANGS,
-                "month_label": loc.month_label, "show_leaders": SHOW_LEADERS, "mlc": loc.lower_month, "span_fr": loc.span,
+                "month_label": loc.month_label, "pub_date": loc.pub_date, "cutoff_date": loc.cutoff_date, "data_month": loc.data_month, "show_leaders": SHOW_LEADERS, "mlc": loc.lower_month, "span_fr": loc.span,
                 "i18n_js": json.dumps({"lang": loc.lang, "t": loc.js_catalog()}, ensure_ascii=False).replace("</", "<\\/")}
 
     @app.context_processor
@@ -358,7 +359,7 @@ def create_app(db_path, proxy=False):
 
     @app.route("/ranking/<int:year>")
     def ranking_year(year):
-        ks = [k for k in mkeys if k.startswith(f"{year:04d}-")]
+        ks = [m.key for m in months if pub_month(m.year, m.month)[0] == year]   # année de publication
         if not ks:
             abort(404)
         return redirect(f"/ranking/{ks[-1]}.html{qs_of(sex_arg(), actifs_arg())}")
@@ -390,7 +391,7 @@ def create_app(db_path, proxy=False):
         end = dt.date.fromisoformat(c["end"])
         comp = NS(id=c["id"], name=c["name"], url=c["url"], start=dt.date.fromisoformat(c["start"]), end=end)
         return render_template("competition.html", **common, page="competition", t=t, c=comp, rows=rows,
-                               month_key=f"{end.year:04d}-{end.month:02d}", month_name=g.loc.month_label(end.year, end.month),
+                               month_key=f"{end.year:04d}-{end.month:02d}", pub_date_k=g.loc.pub_date(end.year, end.month),
                                title=c["name"], qs="")
 
     @app.route("/competitions.html")

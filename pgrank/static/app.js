@@ -142,7 +142,7 @@ function ordinal(n) {
     if (RD && rBest >= 0) {
       var bp = RD.pts[rBest], bx = sx(RX[rBest]), by = sr(bp.r);
       var bc = el("circle", { "class": "best", cx: bx, cy: by, r: 6 }, svg);
-      var tt = document.createElementNS(NS, "title"); tt.textContent = T("js.best_rank_at", "Meilleur rang : {r}, {m}", { r: ordinal(bp.r), m: new Date(RX[rBest]).toLocaleDateString(I18N.lang, { month: "long", year: "numeric", timeZone: "UTC" }) }); bc.appendChild(tt);
+      var tt = document.createElementNS(NS, "title"); tt.textContent = T("js.best_rank_at", "Meilleur rang : {r}, {m}", { r: ordinal(bp.r), m: new Date(RX[rBest] + DAY).toLocaleDateString(I18N.lang, { month: "long", year: "numeric", timeZone: "UTC" }) }); bc.appendChild(tt);
       var left = bx > W - 170;
       var lab = el("text", { "class": "bestlbl", x: bx + (left ? -10 : 10), y: by - 10, "text-anchor": left ? "end" : "start" }, svg);
       lab.textContent = T("js.best_rank", "Meilleur rang : {r}", { r: ordinal(bp.r) });
