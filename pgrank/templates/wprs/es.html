@@ -1,0 +1,143 @@
+{% import "wprs/_charts.html" as c %}
+<section class="hero"><h1 class="long">Los sesgos del WPRS, y lo que cambia un algoritmo predictivo</h1>
+  <p class="lede">La clasificación mundial oficial mide los puntos acumulados en los mejores resultados recientes. No es lo mismo que el nivel actual, y la diferencia se puede medir.</p>
+  <p class="byline">Julien Garcia · 19 de octubre de 2026</p></section>
+<article class="prose">
+  <h2>Por qué este artículo</h2>
+  <p>La clasificación mundial oficial del parapente de competición, el WPRS de la CIVL, responde a una pregunta precisa: ¿quién ha acumulado más puntos en sus mejores resultados recientes? No es la misma pregunta que «¿quién es el más fuerte hoy?», y la distancia entre ambas es el tema de este artículo.</p>
+  <p>Partimos de los resultados de más de 2.000 competiciones publicadas en civlcomps. Primero describimos cómo funciona el WPRS y los sesgos mecánicos que se derivan de él. Después presentamos una clasificación construida de otra manera, con un algoritmo de tipo Elo multijugador que solo aprende de una cosa: quién ganó a quién. Por último ponemos a prueba ambas en el mismo ejercicio: predecir los resultados de competiciones que no han visto.</p>
+
+  <h2>Cómo calcula los puntos el WPRS</h2>
+  <p>La puntuación de un piloto es la suma de sus 4 mejores resultados de los últimos 3 años, y cada resultado es el producto de cinco factores (<a href="https://www.fai.org/sites/default/files/civl/documents/sporting_code_s7_e_-_wprs_2022.pdf">Sección 7E del Sporting Code de la FAI, edición 2022</a>).</p>
+  <p class="formula">P = P<sub>p</sub> × P<sub>q</sub> × P<sub>n</sub> × T<sub>a</sub> × T<sub>d</sub></p>
+  <ul>
+    <li><b>Puesto (P<sub>p</sub>)</b>: los pilotos reciben un valor de 0 a 1 según su puesto, que luego se eleva a la potencia 1 + P<sub>q</sub>. El ganador vale 1.</li>
+    <li><b>Calidad del grupo (P<sub>q</sub>)</b>: compara la suma de los puntos WPRS de la mejor mitad de los inscritos (un inscrito sin puntos WPRS cuenta cero) con la que tendría un grupo formado por los mejores del mundo. Mínimo de 0,2; el texto indica que las mejores pruebas valen de 0,7 a 0,8.</li>
+    <li><b>Participación (P<sub>n</sub>)</b>: raíz del número de participantes dividido por la media de los últimos 12 meses, con un máximo de 1,2.</li>
+    <li><b>Mangas (T<sub>a</sub>)</b>: 1 manga válida = 0,5; 2 mangas = 0,8; 3 mangas o más = 1,0.</li>
+    <li><b>Antigüedad (T<sub>d</sub>)</b>: un resultado pierde valor según la fórmula siguiente, a lo largo de 1.096 días.</li>
+  </ul>
+  <p class="formula">T<sub>d</sub> = 1 / (1 + 2<sup>(días / 1.096) × 20 − 10</sup>)</p>
+  <p>Esta edición, vigente desde el 1 de mayo de 2022, mantiene sin cambios las fórmulas de 2020 para el parapente de distancia. Las propuestas de la CIVL para 2026 (ver más abajo) las describen como el sistema actual.</p>
+
+  <h2>Siete sesgos mecánicos del WPRS</h2>
+  <p>Cada factor de la fórmula responde a una buena intención, pero juntos hacen que se mida otra cosa que el nivel: la meteorología, el tamaño del grupo y el calendario del piloto. Las cifras proceden de la extracción de Kuba Sto (899 pruebas, 895 de ellas con el número de mangas) y de las clasificaciones mensuales de la CIVL de noviembre de 2023 a octubre de 2026.</p>
+</article>
+<div class="wide scroll">
+  <table class="mini biases">
+    <thead><tr><th scope="col">Sesgo</th><th scope="col">Mecanismo</th><th scope="col">Lo que muestran los datos</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">La meteorología decide el valor</th><td>Una prueba con 1 manga vale 0,5; con 3 mangas, 1,0</td><td>El 10 % de las pruebas solo tiene 1 manga. En las pruebas de 60 pilotos o más, el ganador suma, en mediana, 28 puntos con 1 manga (20 pruebas), 44 con 2 mangas (74) y 62 con 3 mangas o más (381)</td></tr>
+      <tr><th scope="row">Una cima plana</th><td>El puesto se eleva a una potencia cercana a 1: casi lineal</td><td>Mediana de 475 pruebas de 60 pilotos o más: el 2.º suma el 98,5 % de los puntos del ganador, el 5.º el 94 %, el 10.º el 87 %, el 25.º el 67 %</td></tr>
+      <tr><th scope="row">El grupo cuenta más que el resultado</th><td>P<sub>q</sub> y P<sub>n</sub> lo multiplican todo: un mismo puesto vale más o menos según la prueba</td><td>P<sub>q</sub> mediano de 0,43, de 0,26 (5 % de las pruebas) a 0,77 (95 %). P<sub>n</sub> alcanza su máximo de 1,2 en el 39 % de las pruebas</td></tr>
+      <tr><th scope="row">Un razonamiento circular</th><td>P<sub>q</sub> se calcula con los puntos WPRS de los inscritos: bien clasificados hoy, dan más valor a la prueba mañana</td><td>El 13,5 % de los pilotos de una prueba no tiene ningún punto WPRS (media de 460 pruebas): cuentan cero en el cálculo de la calidad del grupo</td></tr>
+      <tr><th scope="row">Solo cuentan 4 resultados</th><td>Ninguna penalización por los malos resultados, y cada piloto elige sus 4 mejores entre todas las pruebas que ha volado</td><td>Los 300 primeros hombres tienen todos exactamente 4 resultados computables. En ese top 300, los pilotos con 9 pruebas o más en 24 meses están clasificados 168 puestos mejor por la CIVL que por el Elo (mediana), frente a 44 puestos para los que han volado de 1 a 3</td></tr>
+      <tr><th scope="row">Un resultado envejece en acantilado</th><td>T<sub>d</sub> vale el 99 % a los 6 meses, el 91 % al año, el 50 % a los 18 meses y el 9 % a los 2 años</td><td>La ventana es de 3 años sobre el papel y de unos 18 meses en la práctica</td></tr>
+      <tr><th scope="row">Una actualización mensual</th><td>La clasificación queda congelada entre dos publicaciones</td><td>Una propuesta búlgara para 2026 (BUL 1) quiere pasar a una actualización semanal: las mensuales pueden pasar por alto pruebas encadenadas</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="figs">
+  {{ c.bars("El 2.º de una gran prueba suma el 98,5 % de los puntos del ganador",
+            "Puntos WPRS en % de los del ganador, según el puesto (mediana)",
+            "Extracción de Kuba Sto · mediana de 475 pruebas de 60 pilotos o más",
+            "1.º 100 %, 2.º 98,5 %, 5.º 94,1 %, 10.º 86,9 %, 25.º 66,6 %",
+            [("1.º", "100 %", 100, false), ("2.º", "98,5 %", 98.5, true), ("5.º", "94,1 %", 94.1, false), ("10.º", "86,9 %", 86.9, false), ("25.º", "66,6 %", 66.6, false)]) }}
+  {{ c.curve("Un resultado WPRS solo vale el 9 % al cabo de 2 años",
+             "Valor restante de un resultado, en % de su valor original, según su antigüedad",
+             "Fórmula T<sub>d</sub> de la Sección 7E del Sporting Code de la FAI (edición 2022) · de 0 a 36 meses",
+             "Valor restante: 91 % a los 12 meses, 50 % a los 18 meses, 9 % a los 24 meses, 0 a los 36 meses",
+             "{} %", "meses", "fin de la ventana (3 años)", ["12 meses: 91 %", "18 meses: 50 %", "24 meses: 9 %"]) }}
+</div>
+<article class="prose">
+  <p>Las dos curvas se leen juntas: un piloto que se detiene un año ve cómo se derrite su puntuación, y ganar aporta apenas más que quedar segundo.</p>
+
+  <h3>La participación pesa más que el nivel</h3>
+  <p>A igual nivel, el WPRS premia a quien más compite. Tomemos los 101 hombres clasificados entre el puesto 50 y el 150 del Elo (puesto Elo mediano de alrededor de 100 en cada grupo) y agrupémoslos según el número de pruebas disputadas en 24 meses: su puesto WPRS mediano entre los hombres pasa de 1.354 con 1 a 4 pruebas a 237 (5 a 7), 140 (8 a 10) y 71 (11 o más).</p>
+  {{ c.bars("A igual nivel, los puntos WPRS crecen con el número de pruebas disputadas",
+            "Puntos WPRS medianos de 101 hombres clasificados del 50.º al 150.º en el Elo, según las pruebas disputadas en 24 meses",
+            "Clasificaciones Elo y WPRS a 1 de octubre de 2026, hombres · pruebas disputadas entre octubre de 2024 y octubre de 2026",
+            "1 a 4 pruebas: 68,5 puntos; 5 a 7: 214,4; 8 a 10: 249; 11 o más: 282,5",
+            [("1 a 4 pruebas", "68,5", 22.8, false), ("5 a 7 pruebas", "214,4", 71.5, false), ("8 a 10 pruebas", "249", 83, false), ("11 pruebas o más", "282,5", 94.2, true)]) }}
+  <p>Con 1 a 4 pruebas, parte de la diferencia es mecánica, ya que cuentan menos de 4 resultados. Pero la pendiente continúa más allá: el mismo patrón aparece en los pilotos clasificados del 150.º al 400.º en el Elo (puesto WPRS mediano entre los hombres de 1.433, 414, 241 y luego 165) y del 400.º al 1.000.º (1.534, 736, 480 y luego 296). En los 1.500 mejores del Elo, una regresión da, a igual Elo, 2,4 veces más puntos WPRS con 12 pruebas que con 4.</p>
+  <p>No es una prueba de que el Elo tenga razón, porque un piloto que compite a menudo también puede ser mejor. Pero el Elo lee todos los resultados sin prima por la presencia, y predice mejor (ver la prueba más abajo).</p>
+
+  <h3>Un sesgo geográfico que no se confirma en los resultados</h3>
+  <p>Las pruebas con un P<sub>q</sub> alto se celebran más a menudo en Europa, lo cual es mecánico: P<sub>q</sub> mide el nivel de los inscritos clasificados en el WPRS, y los mejores son europeos. De las 895 pruebas de la extracción que tienen un P<sub>q</sub>, 488 son europeas, 364 se celebran fuera de Europa y 43 en Turquía, el Cáucaso, Asia Central u Oriente Medio (no contabilizadas). El P<sub>q</sub> mediano es de 0,47 en Europa frente a 0,41 en el resto; el 32 % de las pruebas europeas alcanza 0,55 o más, frente al 18 % de las demás; el ganador suma 42 puntos en mediana frente a 36. Algunos países son la excepción: Colombia (30 pruebas) tiene un P<sub>q</sub> mediano de 0,59, como España o Italia.</p>
+  <p>Sin embargo, el efecto en las clasificaciones va en sentido contrario. Una clasificación sin sesgo se equivoca igual cuando favorece a un europeo que cuando favorece a un no europeo. En 156.000 duelos entre ambos grupos, no es así: cuando el WPRS favorece al no europeo, este gana el 69,5 % de los duelos; cuando favorece al europeo, este gana el 73,3 %. El WPRS sobrevalora, pues, un poco a los no europeos, y el Elo aún más (72,1 % frente a 78,8 %): prevé un 48,5 % de victorias no europeas, frente al 45,5 % observado. En el top 300 masculino, los no europeos son el 24 % en el WPRS y el 27 % en el Elo. Estas cifras solo miden a los pilotos que se enfrentan: un piloto que nunca vuela en Europa solo está conectado con los demás a través de unos pocos puentes, algo que ninguna de las dos clasificaciones puede corregir.</p>
+  <p>La CIVL conoce parte de estas críticas. Entre sus propuestas de 2026, <a href="https://civl2026.hyperknot.com/">según resúmenes públicos</a>, Argentina (ARG 1) señala la «incapacidad de diferenciar a ganadores y segundos» y propone una bonificación del 10 %, el 5 % y el 2 % para los tres primeros; Polonia (POL 4) observa que los pilotos bien clasificados «inflan los puntos disponibles para todos».</p>
+
+  <h2>Una clasificación que aprende de los duelos</h2>
+  <p>El algoritmo solo mira el orden de llegada: una prueba de 100 pilotos se lee como 4.950 duelos, y el rating de cada piloto sube si gana a pilotos mejor valorados de lo previsto, o baja en caso contrario. Es el principio del Elo, aplicado a todos los duelos de una misma prueba (los detalles están en la página <a href="{{ root }}method.html">Método</a>).</p>
+  <p>El rating tiene un significado preciso: la diferencia entre dos pilotos da la probabilidad de que uno termine por delante del otro.</p>
+  <p class="formula">P(i delante de j) = 1 / (1 + 10<sup>−(r<sub>i</sub> − r<sub>j</sub>) / 640</sup>)</p>
+  <p>Una clasificación que anuncia probabilidades puede ser contradicha por los resultados siguientes, y eso la hace comprobable. Los puntos WPRS no lo son: «87 puntos» no dice nada de la probabilidad de ganar a alguien.</p>
+  <p>Esto es lo que cambia esta elección frente a los sesgos del apartado anterior.</p>
+  <ul>
+    <li><b>Meteorología y mangas</b>: solo cuenta el orden, no el número de puntos ni el número de mangas.</li>
+    <li><b>Cima plana</b>: ganar al 2.º es un duelo como cualquier otro; ninguna fórmula lo aplana.</li>
+    <li><b>Grupo y circularidad</b>: ganar a un piloto fuerte aporta más que ganar a uno débil, y la fuerza de cada uno se reevalúa a su vez en cada prueba, sin ponderación fija del grupo.</li>
+    <li><b>4 resultados</b>: cuentan todos los resultados, los malos y los buenos.</li>
+    <li><b>Envejecimiento</b>: el rating se mantiene mientras el piloto compite, y el piloto sale de la clasificación activa tras 18 meses sin competir, en lugar de desvanecerse en una pendiente continua. Los pilotos que se alejan o vuelven tras una ausencia conservan así el nivel que han demostrado.</li>
+    <li><b>Pilotos nuevos</b>: un piloto que empieza se mueve mucho (coeficiente multiplicado por 4) para alcanzar rápido su nivel real.</li>
+  </ul>
+
+  <h2>La prueba: ¿cuál predice mejor?</h2>
+  <p>En 460 competiciones disputadas entre diciembre de 2023 y septiembre de 2026, la clasificación Elo predice mejor el orden de llegada que la clasificación CIVL del mes: un 76,1 % de duelos bien predichos frente a un 72,5 %, con el azar en el 50 %.</p>
+  <p>El método es el mismo para ambas. Para cada prueba, se toma la clasificación CIVL publicada justo antes de su inicio (como máximo 45 días antes) y el rating Elo justo antes. Se examina cada par de pilotos: es un acierto si el mejor valorado terminó delante, y medio acierto en caso de empate de valoraciones. Un piloto sin puntos CIVL tiene valoración cero.</p>
+  <div class="scroll"><table class="mini">
+    <thead><tr><th scope="col">Duelos predichos</th><th scope="col" class="num">Elo</th><th scope="col" class="num">WPRS (CIVL)</th><th scope="col" class="num">Diferencia</th></tr></thead>
+    <tbody>
+      <tr><td>Entre pilotos con al menos 3 pruebas (1,07 millones de duelos)</td><td class="num"><b>76,1 %</b></td><td class="num">72,5 %</td><td class="num">+3,6 puntos</td></tr>
+      <tr><td>Todos los duelos</td><td class="num"><b>74,8 %</b></td><td class="num">72,3 %</td><td class="num">+2,5 puntos</td></tr>
+      <tr><td>Entre los 30 mejores de la prueba (al menos 10 pruebas cada uno)</td><td class="num"><b>67,5 %</b></td><td class="num">65,1 %</td><td class="num">+2,4 puntos</td></tr>
+    </tbody>
+  </table></div>
+  <p>El Elo gana en 369 de 460 pruebas, es decir, en el 80 %. La diferencia es menor entre los mejores: a ese nivel todos se parecen y el orden de llegada es muy aleatorio para ambas clasificaciones.</p>
+  <p>Dos salvedades honestas. Primero, el WPRS no fue concebido para predecir: también sirve para clasificar a los pilotos, premiar la presencia y estabilizar las listas de salida. Segundo, los ajustes del Elo se eligieron con todos los datos, incluidas estas 460 pruebas; su resultado es, por tanto, algo optimista. Solo tiene unos pocos parámetros y su precisión en toda la historia (74,9 %) se mantiene cerca de la medida aquí, pero no hemos hecho una prueba con datos reservados para esta comparación.</p>
+
+  <h2>Casos concretos</h2>
+  <p>Las dos clasificaciones divergen sobre todo en los pilotos cuyos cuatro buenos resultados recientes ocultan el resto, o cuyo único resultado reciente se tiene mal en cuenta. Puestos a 1 de octubre de 2026: CIVL = clasificación WPRS general (hombres y mujeres); Elo = puesto entre los pilotos activos.</p>
+  <div class="scroll"><table class="mini">
+    <thead><tr><th scope="col">Piloto</th><th scope="col" class="num">CIVL</th><th scope="col" class="num">Elo</th><th scope="col">Lo que explica la diferencia</th></tr></thead>
+    <tbody>
+      <tr><td>Martin Jovanoski</td><td class="num">4</td><td class="num">50</td><td>Sus 4 resultados computables están todos entre los 7 primeros (3.º, 2.º, 7.º, 3.º), obtenidos en 4 pruebas en 24 meses. El Elo lee también sus otras 65 pruebas</td></tr>
+      <tr><td>Roger Aeschbacher</td><td class="num">5</td><td class="num">57</td><td>3.º, 2.º y 2.º en tres grandes pruebas, más un 22.º puesto en el Trofeo Montegrappa que aun así aporta 80,3 puntos, el 73 % de los 109,8 puntos del 3.º</td></tr>
+      <tr><td>Davide Sassudelli</td><td class="num">13</td><td class="num">65</td><td>Cuatro resultados entre 87 y 100 puntos: un 14.º puesto en la Superfinal (89,1) pesa casi tanto como un 6.º en la Alpen Cup (87,0)</td></tr>
+      <tr><td>Lucas Bonin</td><td class="num">1.106</td><td class="num">668</td><td>Solo dos pruebas, dos Copas del Mundo: 27.º de 90 (53,2 puntos) y luego 49.º de 110 (37,1). El WPRS suma, el Elo cuenta los 124 pilotos a los que ganó</td></tr>
+    </tbody>
+  </table></div>
+  <p>El caso Jovanoski es el más elocuente. Cuatro podios o casi, ninguna prueba mediocre en la selección: el WPRS lo sitúa 4.º del mundo, sin que su regularidad en las temporadas anteriores entre en juego.</p>
+
+  <h3>Las leyendas que compiten menos</h3>
+  <p>Los pilotos que se han alejado de la competición o la practican menos son lo contrario de Jovanoski: el WPRS borra sus resultados en dos años, aunque siguen siendo rivales temibles. Puestos a 1 de octubre de 2026.</p>
+  <div class="scroll"><table class="mini">
+    <thead><tr><th scope="col">Piloto</th><th scope="col" class="num">CIVL</th><th scope="col" class="num">Elo</th><th scope="col">Última prueba</th></tr></thead>
+    <tbody>
+      <tr><td>Pierre Remy</td><td class="num">446</td><td class="num">7</td><td>junio de 2026</td></tr>
+      <tr><td>Christian Maurer</td><td class="num">545</td><td class="num">14</td><td>abril de 2026</td></tr>
+      <tr><td>Andy Aebi</td><td class="num">1.070</td><td class="num">10</td><td>agosto de 2026</td></tr>
+      <tr><td>Aaron Durogati</td><td class="num">3.149</td><td class="num">88</td><td>abril de 2026</td></tr>
+      <tr><td>Maxime Pinot</td><td class="num">122</td><td class="num">71</td><td>septiembre de 2026</td></tr>
+    </tbody>
+  </table></div>
+  <p>La prueba confirma que conservar su rating es la decisión correcta. En la Copa del Mundo de Gemona, Andy Aebi terminó 12.º cuando el Elo le preveía el puesto 37. En toda la historia, en 2.411 regresos tras más de 18 meses sin competir, conservar el rating predice el 74,1 % de los duelos contra pilotos activos, frente al 65,8 % si se devolviera al piloto a 1.500. Un ligero acercamiento a la media (conservando el 80 % de la diferencia) apenas mejoraría, con un 74,5 %.</p>
+
+  <h2>Lo que el algoritmo no corrige</h2>
+  <p>El Elo es mejor que el WPRS para predecir, no para todo, y sus defectos son de otra naturaleza.</p>
+  <ul>
+    <li><b>El regreso tras una larga ausencia.</b> El rating no baja durante la inactividad, lo que es más bien una ventaja (ver las leyendas más arriba). Aun así, el nivel de un piloto que vuelve tras años es menos seguro, y el Elo no lo muestra.</li>
+    <li><b>Ninguna medida de la confianza.</b> Un piloto con 2 pruebas y otro con 60 llevan el mismo tipo de número. Lucas Bonin, con 2 Copas del Mundo, es 668.º en el Elo; una prueba local con Glicko-2 lo sitúa 81.º, lo que muestra que no sabemos lo que vale.</li>
+    <li><b>Las burbujas locales.</b> Un piloto que domina un grupo aislado ve subir su rating sin demostrar su nivel frente a los demás. En las 38 pruebas disputadas en Australia, Estados Unidos, Corea, Argentina, Nueva Zelanda, Sudáfrica, India e Indonesia (de 0 a 29 % de europeos en la salida), los locales ganan el 40,7 % de sus duelos contra europeos, cuando el Elo preveía el 46,0 %. El WPRS limita este defecto gracias a P<sub>q</sub>, que valora menos una prueba con un grupo débil: la diferencia de fiabilidad entre sus pronósticos para locales y para europeos es de 4 puntos (70,5 % frente a 74,8 %), frente a 12 puntos en el Elo (71,6 % frente a 84,1 %). Aquí, el WPRS lo hace mejor que el Elo.</li>
+    <li><b>Un historial completo y un cálculo incremental.</b> El rating de un piloto depende de todos los resultados pasados, tratados en orden: hace falta, por tanto, el historial completo, y una prueba que falte o esté mal introducida falsea los ratings de todos los pilotos afectados, también en las pruebas siguientes. Los primeros años son además más ruidosos, porque todos parten del mismo rating. El WPRS, en cambio, se recalcula solo a partir de los 3 últimos años. Aquí este defecto se sortea: el sitio lo recalcula todo desde el principio en cada actualización de los datos.</li>
+    <li><b>La objeción del mejor nivel.</b> Algunos opinan que el WPRS muestra lo que valen los pilotos en su mejor momento, mientras que el Elo incluye también sus malos días. La objeción tiene sentido para un uso determinado, pero no se confirma en los resultados. En 2,26 millones de duelos entre pilotos con más de 5 pruebas, de 2012 a 2026, clasificar a los pilotos según su rating máximo de los últimos 24 meses predice el 74,8 % de los duelos, frente al 75,1 % del rating actual; una mezcla con un 25 % del máximo solo aporta 0,04 puntos. Y el 90 % de las pruebas de la extracción tiene 2 mangas o más: un mal día cuesta caro en la clasificación final.</li>
+    <li><b>Varios algoritmos honestos, clasificaciones que difieren.</b> En una simulación local, Glicko-2 predice más o menos igual que el Elo (75,2 % frente a 74,9 % en toda la historia), pero sitúa a Jovanoski 3.º, el Elo 50.º y la CIVL 4.º. La precisión no decide entre clasificaciones que, sin embargo, son muy distintas, sobre todo en la cima.</li>
+    <li><b>Un techo de precisión bajo.</b> Con un 76 % de duelos bien predichos, uno de cada cuatro se invierte: la meteorología, la táctica y la suerte pesan mucho en el parapente de competición, y ninguna clasificación lo eliminará.</li>
+    <li><b>Los datos.</b> Los resultados proceden de civlcomps y de la extracción de Kuba Sto; todavía faltan pruebas, parte de los géneros está reconstruida y solo se aprovecha el orden (ni las diferencias de puntos ni el número de mangas). Una prueba con una sola manga es más ruidosa que una con tres, y el Elo no lo sabe.</li>
+  </ul>
+
+  <h2>Conclusión: un complemento, no un sustituto</h2>
+  <p>El WPRS sigue siendo útil para aquello para lo que fue concebido: clasificar a los pilotos, premiar la presencia, simplificar las listas de salida. Pero como medida del nivel actual, pierde frente a un algoritmo muy sencillo que solo conoce el orden de llegada: un 76,1 % de duelos bien predichos frente a un 72,5 % en 460 pruebas, y ventaja en 4 de cada 5 pruebas.</p>
+  <p>Esta mejora procede de los sesgos que se corrigen al cambiar de método (meteorología, grupo, cuatro resultados, envejecimiento), no de una sofisticación especial. Quedan defectos propios del modelo, como la falta de una medida de confianza para los pilotos que han competido poco, y la vía más prometedora para tratarlos es mostrar una incertidumbre junto al rating. Es lo que hace ya este sitio: el ± que aparece junto a cada rating se explica en la página <a href="{{ root }}method.html">Método</a>.</p>
+  <p>La clasificación construida aquí tiene una ventaja: se la puede refutar. Si un piloto, un organizador o la CIVL encuentra un caso en el que se equivoca, la comparación es la misma que acabamos de hacer: ¿cuál predice mejor la prueba siguiente?</p>
+</article>

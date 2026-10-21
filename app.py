@@ -528,7 +528,7 @@ def create_app(db_path, proxy=False):
 
     @app.route("/wprs.html")
     def wprs():
-        return render_template("wprs.html", **common, page="wprs", title="Les biais du WPRS", qs="")
+        return render_template("wprs.html", **common, page="wprs", title=g.loc.gettext("Les biais du WPRS"), qs="")
 
     with app.app_context():     # index de recherche construit au démarrage (≈ 5 s)
         pilot_index()

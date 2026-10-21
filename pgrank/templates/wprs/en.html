@@ -1,0 +1,143 @@
+{% import "wprs/_charts.html" as c %}
+<section class="hero"><h1 class="long">The biases of the WPRS, and what a predictive algorithm changes</h1>
+  <p class="lede">The official world ranking measures the points piled up on a pilot’s best recent results. That is not the same as their current level, and the difference can be measured.</p>
+  <p class="byline">Julien Garcia · October 19, 2026</p></section>
+<article class="prose">
+  <h2>Why this article</h2>
+  <p>The official world ranking of competition paragliding, the CIVL’s WPRS, answers a precise question: who has piled up the most points on their best recent results? That is not the same question as “who is the strongest today?”, and the gap between the two is what this article is about.</p>
+  <p>We start from the results of more than 2,000 competitions published on civlcomps. We first describe how the WPRS works and the mechanical biases that follow from it. We then present a ranking built differently, with a multiplayer Elo-type algorithm that learns from one thing only: who beat whom. Finally we put both to the same test: predicting the results of competitions they have not seen.</p>
+
+  <h2>How the WPRS computes points</h2>
+  <p>A pilot’s score is the sum of their 4 best results over the last 3 years, each result being the product of five factors (<a href="https://www.fai.org/sites/default/files/civl/documents/sporting_code_s7_e_-_wprs_2022.pdf">FAI Sporting Code Section 7E, 2022 edition</a>).</p>
+  <p class="formula">P = P<sub>p</sub> × P<sub>q</sub> × P<sub>n</sub> × T<sub>a</sub> × T<sub>d</sub></p>
+  <ul>
+    <li><b>Placing (P<sub>p</sub>)</b>: pilots are scored from 0 to 1 by their place, then this number is raised to the power 1 + P<sub>q</sub>. The winner scores 1.</li>
+    <li><b>Field quality (P<sub>q</sub>)</b>: compares the sum of the WPRS points of the best half of the registered pilots (a registered pilot without WPRS points counts as zero) with what a field made of the world’s best would have. Floor at 0.2; the text states that the best events are worth 0.7 to 0.8.</li>
+    <li><b>Participation (P<sub>n</sub>)</b>: square root of the number of participants divided by the average of the last 12 months, capped at 1.2.</li>
+    <li><b>Tasks (T<sub>a</sub>)</b>: 1 valid task = 0.5; 2 tasks = 0.8; 3 tasks or more = 1.0.</li>
+    <li><b>Age (T<sub>d</sub>)</b>: a result loses value according to the formula below, over 1,096 days.</li>
+  </ul>
+  <p class="formula">T<sub>d</sub> = 1 / (1 + 2<sup>(days / 1,096) × 20 − 10</sup>)</p>
+  <p>This edition, in force since May 1, 2022, carries over the 2020 formulas unchanged for cross-country paragliding. The CIVL’s 2026 proposals (see below) describe them as the current system.</p>
+
+  <h2>Seven mechanical biases of the WPRS</h2>
+  <p>Each factor in the formula serves a good intention, but together they make the ranking measure something other than level: the weather, the size of the field and the pilot’s calendar. The figures come from Kuba Sto’s extraction (899 events, 895 of them with the number of tasks) and from the monthly CIVL rankings from November 2023 to October 2026.</p>
+</article>
+<div class="wide scroll">
+  <table class="mini biases">
+    <thead><tr><th scope="col">Bias</th><th scope="col">Mechanism</th><th scope="col">What the data show</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">The weather decides the value</th><td>An event with 1 task is worth 0.5; with 3 tasks, 1.0</td><td>10% of events have only 1 task. In events with 60 pilots or more, the winner scores 28 points with 1 task (20 events), 44 with 2 tasks (74) and 62 with 3 tasks or more (381), median values</td></tr>
+      <tr><th scope="row">A flat top</th><td>The placing is raised to a power close to 1: almost linear</td><td>Median over 475 events with 60 pilots or more: 2nd place scores 98.5% of the winner’s points, 5th 94%, 10th 87%, 25th 67%</td></tr>
+      <tr><th scope="row">The field counts more than the result</th><td>P<sub>q</sub> and P<sub>n</sub> multiply everything: the same placing is worth more or less depending on the event</td><td>Median P<sub>q</sub> 0.43, from 0.26 (5% of events) to 0.77 (95%). P<sub>n</sub> hits its 1.2 cap in 39% of events</td></tr>
+      <tr><th scope="row">Circular reasoning</th><td>P<sub>q</sub> is computed from the registered pilots’ WPRS points: well ranked today, they make the event worth more tomorrow</td><td>13.5% of the pilots in an event have no WPRS points (average over 460 events): they count as zero in the field-quality calculation</td></tr>
+      <tr><th scope="row">Only 4 results count</th><td>No penalty for bad results, and every pilot picks their 4 best from all the events they have flown</td><td>The top 300 men all have exactly 4 counting results. Within this top 300, pilots who flew 9 events or more in 24 months are ranked 168 places higher by the CIVL than by the Elo (median), against 44 places for those who flew 1 to 3</td></tr>
+      <tr><th scope="row">Results age off a cliff</th><td>T<sub>d</sub> is 99% at 6 months, 91% at 1 year, 50% at 18 months, 9% at 2 years</td><td>The window is 3 years on paper, about 18 months in practice</td></tr>
+      <tr><th scope="row">A monthly update</th><td>The ranking is frozen between two publications</td><td>A Bulgarian proposal for 2026 (BUL 1) wants a weekly update: monthly rankings can miss back-to-back events</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="figs">
+  {{ c.bars("2nd place in a big event scores 98.5% of the winner’s points",
+            "WPRS points as a % of the winner’s, by place (median)",
+            "Kuba Sto’s extraction · median of 475 events with 60 pilots or more",
+            "1st 100%, 2nd 98.5%, 5th 94.1%, 10th 86.9%, 25th 66.6%",
+            [("1st", "100%", 100, false), ("2nd", "98.5%", 98.5, true), ("5th", "94.1%", 94.1, false), ("10th", "86.9%", 86.9, false), ("25th", "66.6%", 66.6, false)]) }}
+  {{ c.curve("A WPRS result is worth only 9% after 2 years",
+             "Remaining value of a result, as a % of its original value, by age",
+             "T<sub>d</sub> formula from FAI Sporting Code Section 7E (2022 edition) · from 0 to 36 months",
+             "Remaining value: 91% at 12 months, 50% at 18 months, 9% at 24 months, 0 at 36 months",
+             "{}%", "months", "end of the window (3 years)", ["12 months: 91%", "18 months: 50%", "24 months: 9%"]) }}
+</div>
+<article class="prose">
+  <p>The two curves are read together: a pilot who stops for a year sees their score melt away, and winning earns barely more than finishing second.</p>
+
+  <h3>Participation weighs more than level</h3>
+  <p>At equal level, the WPRS rewards whoever flies the most. Take the 101 men ranked between 50th and 150th by Elo (median Elo rank of about 100 in each group) and group them by the number of events flown in 24 months: their median WPRS rank among men goes from 1,354 for 1 to 4 events to 237 (5 to 7), 140 (8 to 10) and 71 (11 or more).</p>
+  {{ c.bars("At equal level, WPRS points grow with the number of events flown",
+            "Median WPRS points of 101 men ranked 50th to 150th by Elo, by events flown in 24 months",
+            "Elo and WPRS rankings on October 1, 2026, men · events flown between October 2024 and October 2026",
+            "1 to 4 events: 68.5 points; 5 to 7: 214.4; 8 to 10: 249; 11 or more: 282.5",
+            [("1 to 4 events", "68.5", 22.8, false), ("5 to 7 events", "214.4", 71.5, false), ("8 to 10 events", "249", 83, false), ("11 events or more", "282.5", 94.2, true)]) }}
+  <p>For 1 to 4 events, part of the gap is mechanical, since fewer than 4 results count. But the slope continues beyond that: the same pattern appears for pilots ranked 150th to 400th by Elo (median WPRS rank among men of 1,433, 414, 241 then 165) and 400th to 1,000th (1,534, 736, 480 then 296). Over the top 1,500 by Elo, a regression gives, at equal Elo, 2.4 times more WPRS points for 12 events than for 4.</p>
+  <p>This does not prove the Elo is right, since a pilot who flies often may also be better. But the Elo reads every result with no bonus for showing up, and it predicts better (see the test below).</p>
+
+  <h3>A geographic bias that the results do not confirm</h3>
+  <p>Events with a high P<sub>q</sub> are held more often in Europe, which is mechanical: P<sub>q</sub> measures the level of the registered pilots ranked in the WPRS, and the best are European. Of the 895 events in the extraction that have a P<sub>q</sub>, 488 are European, 364 are held outside Europe and 43 in Turkey, the Caucasus, Central Asia or the Middle East (not counted). The median P<sub>q</sub> is 0.47 in Europe against 0.41 elsewhere; 32% of European events reach 0.55 or more, against 18% of the others; the winner scores 42 points at the median against 36. Some countries are exceptions: Colombia (30 events) has a median P<sub>q</sub> of 0.59, like Spain or Italy.</p>
+  <p>Yet the effect on the rankings goes the other way. An unbiased ranking is wrong as often when it favours a European as when it favours a non-European. Over 156,000 duels between the two groups, that is not the case: when the WPRS favours the non-European, they win 69.5% of the duels; when it favours the European, the European wins 73.3%. The WPRS therefore slightly overrates non-Europeans, and the Elo more so (72.1% against 78.8%): it expects 48.5% non-European wins, against 45.5% observed. In the top 300 men, non-Europeans make up 24% in the WPRS and 27% in the Elo. These figures only measure pilots who meet: a pilot who never flies in Europe is linked to the others only through a few bridges, which neither ranking can correct.</p>
+  <p>The CIVL is aware of some of these criticisms. Among its 2026 proposals, <a href="https://civl2026.hyperknot.com/">according to public summaries</a>, Argentina (ARG 1) points to the “failure to differentiate winners and runners-up” and proposes a bonus of 10%, 5% and 2% for the top three; Poland (POL 4) notes that highly ranked pilots “inflate the points available to everyone”.</p>
+
+  <h2>A ranking that learns from duels</h2>
+  <p>The algorithm looks only at the finishing order: an event with 100 pilots is read as 4,950 duels, and each pilot sees their rating go up if they beat better-rated pilots than expected, or down otherwise. This is the Elo principle, applied to every duel within the same event (details on the <a href="{{ root }}method.html">Method</a> page).</p>
+  <p>The rating has a precise meaning: the gap between two pilots gives the probability that one finishes ahead of the other.</p>
+  <p class="formula">P(i ahead of j) = 1 / (1 + 10<sup>−(r<sub>i</sub> − r<sub>j</sub>) / 640</sup>)</p>
+  <p>A ranking that states probabilities can be contradicted by the next results, which makes it testable. WPRS points cannot: “87 points” says nothing about the chance of beating someone.</p>
+  <p>Here is what this choice changes against the biases of the previous section.</p>
+  <ul>
+    <li><b>Weather and tasks</b>: only the order counts, not the number of points scored or the number of tasks.</li>
+    <li><b>Flat top</b>: beating the 2nd is a duel like any other; no formula flattens it.</li>
+    <li><b>Field and circularity</b>: beating a strong pilot earns more than beating a weak one, and everyone’s strength is itself re-estimated at each event, with no fixed weighting of the field.</li>
+    <li><b>4 results</b>: every result counts, the bad ones as well as the good ones.</li>
+    <li><b>Ageing</b>: the rating stays as long as the pilot competes, and the pilot leaves the active ranking after 18 months without a competition, instead of fading along a continuous slope. Pilots who step back or return after a break thus keep the level they have shown.</li>
+    <li><b>New pilots</b>: a pilot who is starting out moves a lot (coefficient multiplied by 4) to reach their true level quickly.</li>
+  </ul>
+
+  <h2>The test: which predicts better?</h2>
+  <p>Over 460 competitions flown between December 2023 and September 2026, the Elo ranking predicts the finishing order better than that month’s CIVL ranking: 76.1% of duels correctly predicted against 72.5%, with chance at 50%.</p>
+  <p>The method is the same for both. For each event, we take the CIVL ranking published just before it starts (at most 45 days before) and the Elo rating just before. We look at each pair of pilots: it counts as a success if the better-rated pilot finished ahead, and as half a success if the ratings are equal. A pilot without CIVL points is rated zero.</p>
+  <div class="scroll"><table class="mini">
+    <thead><tr><th scope="col">Duels predicted</th><th scope="col" class="num">Elo</th><th scope="col" class="num">WPRS (CIVL)</th><th scope="col" class="num">Gap</th></tr></thead>
+    <tbody>
+      <tr><td>Between pilots with at least 3 events (1.07 million duels)</td><td class="num"><b>76.1%</b></td><td class="num">72.5%</td><td class="num">+3.6 points</td></tr>
+      <tr><td>All duels</td><td class="num"><b>74.8%</b></td><td class="num">72.3%</td><td class="num">+2.5 points</td></tr>
+      <tr><td>Among the top 30 of the event (at least 10 events each)</td><td class="num"><b>67.5%</b></td><td class="num">65.1%</td><td class="num">+2.4 points</td></tr>
+    </tbody>
+  </table></div>
+  <p>The Elo wins in 369 events out of 460, or 80% of them. The gap is smaller among the best: at that level everyone is alike and the finishing order is very random for both rankings.</p>
+  <p>Two honest caveats. First, the WPRS was not designed to predict: it also serves to qualify pilots, reward attendance and stabilise start lists. Second, the Elo settings were chosen on the whole dataset, including these 460 events; its result is therefore a little optimistic. It has only a few parameters and its accuracy over the full history (74.9%) stays close to the one measured here, but we did not run a test on held-out data for this comparison.</p>
+
+  <h2>Concrete cases</h2>
+  <p>The two rankings diverge most for pilots whose four good recent results hide the rest, or whose only recent result is poorly counted. Ranks on October 1, 2026: CIVL = overall WPRS ranking (men and women); Elo = rank among active pilots.</p>
+  <div class="scroll"><table class="mini">
+    <thead><tr><th scope="col">Pilot</th><th scope="col" class="num">CIVL</th><th scope="col" class="num">Elo</th><th scope="col">What explains the gap</th></tr></thead>
+    <tbody>
+      <tr><td>Martin Jovanoski</td><td class="num">4</td><td class="num">50</td><td>His 4 counting results are all in the top 7 (3rd, 2nd, 7th, 3rd), from 4 events in 24 months. The Elo also reads his 65 other events</td></tr>
+      <tr><td>Roger Aeschbacher</td><td class="num">5</td><td class="num">57</td><td>3rd, 2nd and 2nd in three big events, plus a 22nd place at the Trofeo Montegrappa that still earns 80.3 points, 73% of the 3rd’s 109.8 points</td></tr>
+      <tr><td>Davide Sassudelli</td><td class="num">13</td><td class="num">65</td><td>Four results between 87 and 100 points: a 14th place at the Superfinal (89.1) weighs almost as much as a 6th at the Alpen Cup (87.0)</td></tr>
+      <tr><td>Lucas Bonin</td><td class="num">1,106</td><td class="num">668</td><td>Only two events, two World Cups: 27th of 90 (53.2 points) then 49th of 110 (37.1). The WPRS adds up, the Elo counts the 124 pilots he beat</td></tr>
+    </tbody>
+  </table></div>
+  <p>The Jovanoski case is the most telling. Four podiums or nearly, no average event in the selection: the WPRS puts him 4th in the world, without his consistency over previous seasons coming into play.</p>
+
+  <h3>Legends who compete less</h3>
+  <p>Pilots who have moved away from competition or compete less are the opposite of Jovanoski: the WPRS erases their results within two years, while they remain formidable opponents. Ranks on October 1, 2026.</p>
+  <div class="scroll"><table class="mini">
+    <thead><tr><th scope="col">Pilot</th><th scope="col" class="num">CIVL</th><th scope="col" class="num">Elo</th><th scope="col">Last event</th></tr></thead>
+    <tbody>
+      <tr><td>Pierre Remy</td><td class="num">446</td><td class="num">7</td><td>June 2026</td></tr>
+      <tr><td>Christian Maurer</td><td class="num">545</td><td class="num">14</td><td>April 2026</td></tr>
+      <tr><td>Andy Aebi</td><td class="num">1,070</td><td class="num">10</td><td>August 2026</td></tr>
+      <tr><td>Aaron Durogati</td><td class="num">3,149</td><td class="num">88</td><td>April 2026</td></tr>
+      <tr><td>Maxime Pinot</td><td class="num">122</td><td class="num">71</td><td>September 2026</td></tr>
+    </tbody>
+  </table></div>
+  <p>The test confirms that keeping their rating is the right choice. At the Gemona World Cup, Andy Aebi finished 12th while the Elo expected 37th. Over the full history, for 2,411 returns after more than 18 months without competing, keeping the rating predicts 74.1% of duels against active pilots, against 65.8% if the pilot were reset to 1,500. A slight shrink towards the average (80% of the gap kept) would do barely better, 74.5%.</p>
+
+  <h2>What the algorithm does not fix</h2>
+  <p>The Elo is better than the WPRS at predicting, not at everything, and its flaws are of a different kind.</p>
+  <ul>
+    <li><b>Returning after a long absence.</b> The rating does not drop during inactivity, which is rather a strength (see the legends above). Still, the level of a pilot returning after years is less certain, and the Elo does not show it.</li>
+    <li><b>No measure of confidence.</b> A pilot with 2 events and a pilot with 60 events carry the same kind of number. Lucas Bonin, with 2 World Cups, is 668th by Elo; a local Glicko-2 test puts him 81st, which shows that we do not know what he is worth.</li>
+    <li><b>Local bubbles.</b> A pilot who dominates an isolated field sees their rating rise without proof of their level against the others. In the 38 events held in Australia, the United States, Korea, Argentina, New Zealand, South Africa, India and Indonesia (0 to 29% Europeans at the start), locals win 40.7% of their duels against Europeans, while the Elo expected 46.0%. The WPRS limits this flaw thanks to P<sub>q</sub>, which values an event with a weak field less: the reliability gap between its forecasts for locals and for Europeans is 4 points (70.5% against 74.8%), against 12 points for the Elo (71.6% against 84.1%). Here, the WPRS does better than the Elo.</li>
+    <li><b>A complete history and an incremental calculation.</b> A pilot’s rating depends on all past results, processed in order: the whole history is needed, and a missing or mistyped event skews the ratings of every pilot involved, including for the following events. The early years are also noisier, since everyone starts from the same rating. The WPRS, for its part, is recomputed from the last 3 years only. Here, this flaw is worked around: the site recomputes everything from the start at each data update.</li>
+    <li><b>The “best level” objection.</b> Some argue that the WPRS shows what pilots are worth at their best, while the Elo also includes their bad days. The objection makes sense for a given use, but it is not borne out by the results. Over 2.26 million duels between pilots with more than 5 events, from 2012 to 2026, ranking pilots by their peak rating over the last 24 months predicts 74.8% of duels, against 75.1% for the current rating; a 25% blend of the peak adds only 0.04 points. And 90% of the events in the extraction have 2 tasks or more: a bad day there costs a lot in the final ranking.</li>
+    <li><b>Several honest algorithms, rankings that differ.</b> In a local simulation, Glicko-2 predicts about as well as the Elo (75.2% against 74.9% over the full history) but ranks Jovanoski 3rd, the Elo 50th and the CIVL 4th. Accuracy does not settle the choice between rankings that are nonetheless very different, especially at the top.</li>
+    <li><b>A low ceiling on accuracy.</b> With 76% of duels correctly predicted, one duel in four is reversed: weather, tactics and luck weigh heavily in competition paragliding, and no ranking will remove that.</li>
+    <li><b>The data.</b> The results come from civlcomps and Kuba Sto’s extraction; some events are still missing, part of the genders is reconstructed, and only the order is used (neither the point gaps nor the number of tasks). An event with a single task is noisier than one with three, and the Elo does not know it.</li>
+  </ul>
+
+  <h2>Conclusion: a complement, not a replacement</h2>
+  <p>The WPRS remains useful for what it was designed for: qualifying pilots, rewarding attendance, simplifying start lists. But as a measure of current level, it loses to a very simple algorithm that knows only the finishing order: 76.1% of duels correctly predicted against 72.5% over 460 events, and an advantage in 4 events out of 5.</p>
+  <p>This gain comes from the biases that a change of method corrects (weather, field, four results, ageing), not from any particular sophistication. Flaws specific to the model remain, such as the lack of a confidence measure for pilots who have competed little, and the most promising way to address them is to show an uncertainty next to the rating. This site now does so: the ± shown next to each rating is explained on the <a href="{{ root }}method.html">Method</a> page.</p>
+  <p>The ranking built here has one advantage: it can be proven wrong. If a pilot, an organiser or the CIVL finds a case where it is mistaken, the comparison is the same one we have just made: which predicts the next event better?</p>
+</article>
