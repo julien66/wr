@@ -140,4 +140,9 @@
   <p>The WPRS remains useful for what it was designed for: qualifying pilots, rewarding attendance, simplifying start lists. But as a measure of current level, it loses to a very simple algorithm that knows only the finishing order: 76.1% of duels correctly predicted against 72.5% over 460 events, and an advantage in 4 events out of 5.</p>
   <p>This gain comes from the biases that a change of method corrects (weather, field, four results, ageing), not from any particular sophistication. Flaws specific to the model remain, such as the lack of a confidence measure for pilots who have competed little, and the most promising way to address them is to show an uncertainty next to the rating. This site now does so: the ± shown next to each rating is explained on the <a href="{{ root }}method.html">Method</a> page.</p>
   <p>The ranking built here has one advantage: it can be proven wrong. If a pilot, an organiser or the CIVL finds a case where it is mistaken, the comparison is the same one we have just made: which predicts the next event better?</p>
+
+  <h2>An open project, reproducible tests</h2>
+  <p>This project is open source. The ranking code, the results database and the accuracy measure are published on <a href="https://github.com/julien66/wr">GitHub</a> under the free AGPL-3.0 licence. Anyone can rebuild the whole ranking from the CIVL results with a single command, find the Elo’s accuracy over the full history (74.9% of duels correctly predicted) and test their own settings with the same measure.</p>
+  <p class="formula cmd">python build_db.py --db data/civl_data.db --out ranking.db</p>
+  <p>The comparison with the WPRS also needs the monthly CIVL rankings, which are not yet in the repository: that particular test cannot yet be redone identically from the published code.</p>
 </article>

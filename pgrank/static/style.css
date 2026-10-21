@@ -337,3 +337,5 @@ tr.off .band.sd::before{background:var(--rule)}
   .biases td + td { color: var(--muted); }
   .bar .k { font-size: 11px; }
 }
+.prose .formula.cmd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
+footer p.oss a { margin-right: 0; }

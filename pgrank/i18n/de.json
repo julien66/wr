@@ -207,5 +207,6 @@
  "Évolution": "Veränderung",
  "Évolution par compétition": "Entwicklung je Wettbewerb",
  "Analyse WPRS": "WPRS-Analyse",
- "Les biais du WPRS": "Die Verzerrungen des WPRS"
+ "Les biais du WPRS": "Die Verzerrungen des WPRS",
+ "Code source libre (licence <a href=\"{lic}\">AGPL-3.0</a>) : <a href=\"{repo}\">github.com/julien66/wr</a>": "Freier Quellcode (Lizenz <a href=\"{lic}\">AGPL-3.0</a>): <a href=\"{repo}\">github.com/julien66/wr</a>"
 }
