@@ -140,4 +140,9 @@
   <p>Le WPRS reste utile pour ce pour quoi il est conçu : qualifier, récompenser la présence, simplifier les listes de départ. Mais comme mesure du niveau actuel, il perd face à un algorithme très simple, qui ne connaît que l’ordre d’arrivée : 76,1 % de duels bien prédits contre 72,5 % sur 460 épreuves, et un avantage dans 4 épreuves sur 5.</p>
   <p>Ce gain vient des biais qu’on corrige en changeant de méthode (météo, plateau, quatre résultats, vieillissement), pas d’une sophistication particulière. Il reste des défauts propres au modèle, comme l’absence de mesure de confiance pour les pilotes qui ont peu couru, et la voie la plus prometteuse pour les traiter est d’afficher une incertitude à côté du rating. C’est ce que fait désormais ce site : le ± affiché à côté de chaque rating est expliqué sur la page <a href="{{ root }}method.html">Méthode</a>.</p>
   <p>Le classement construit ici a un avantage : on peut le faire mentir. Si un pilote, un organisateur ou la CIVL trouve un cas où il se trompe, la comparaison est la même qu’on vient de faire : qui prédit le mieux l’épreuve suivante ?</p>
+
+  <h2>Un projet ouvert, des tests reproductibles</h2>
+  <p>Ce projet est open source. Le code du classement, la base de résultats et la mesure de précision sont publiés sur <a href="https://github.com/julien66/wr">GitHub</a> sous licence libre AGPL-3.0. Chacun peut reconstruire tout le classement à partir des résultats de la CIVL avec une seule commande, retrouver la précision de l’Elo sur toute l’histoire (74,9 % des duels bien prédits) et tester ses propres réglages avec la même mesure.</p>
+  <p class="formula cmd">python build_db.py --db data/civl_data.db --out ranking.db</p>
+  <p>La comparaison avec le WPRS demande en plus les classements CIVL mensuels, qui ne sont pas encore dans le dépôt : ce test-là ne peut donc pas encore être refait à l’identique à partir du code publié.</p>
 </article>
