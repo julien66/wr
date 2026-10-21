@@ -187,7 +187,7 @@ def create_app(db_path, proxy=False):
     @app.route("/sitemap.xml")
     def sitemap():
         base = request.url_root.rstrip("/")
-        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/method.html", f"{base}/legal.html"]
+        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/method.html", f"{base}/wprs.html", f"{base}/legal.html"]
         if SHOW_LEADERS:
             urls.append(f"{base}/leaders.html")
         urls += [f"{base}/ranking/{k}.html" for k in mkeys]
@@ -525,6 +525,10 @@ def create_app(db_path, proxy=False):
                                n_results=q1("SELECT COUNT(*) FROM results r JOIN competitions c ON c.id=r.comp_id WHERE c.rated=1"),
                                first=months[0], qs="",
                                skipped=db().execute("SELECT id FROM competitions WHERE rated=0").fetchall())
+
+    @app.route("/wprs.html")
+    def wprs():
+        return render_template("wprs.html", **common, page="wprs", title="Les biais du WPRS", qs="")
 
     with app.app_context():     # index de recherche construit au démarrage (≈ 5 s)
         pilot_index()
