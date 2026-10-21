@@ -59,6 +59,24 @@ def iso_my(iso):
     return f"{MONTHS[int(m) - 1]} {y}"
 
 
+_PRE = re.compile(r"\bpre[- ]?(pwc|world)|test event", re.I)
+_PWC = re.compile(r"paragliding world cup|\bpwc\b|super ?final", re.I)
+_CHAMP = re.compile(r"world (paragliding )?championship|fai world|world air games|"
+                    r"(european|asian|pan.?american|south american|oceania|asia.?pacific|continental)\b.*championship", re.I)
+
+
+def comp_kind(name):
+    """Type de compétition deviné d'après son nom : « pwc » (Coupe du monde), « champ » (championnat du monde ou
+    continental) ou « » (le reste). Sert seulement au filtre de la liste des compétitions."""
+    if _PRE.search(name):
+        return ""
+    if _PWC.search(name):
+        return "pwc"
+    if _CHAMP.search(name) and not re.search(r"national|south african", name, re.I):
+        return "champ"
+    return ""
+
+
 def _pct(v, lo, hi):
     return round(max(0.0, min(100.0, (v - lo) / (hi - lo) * 100)), 1) if hi > lo else 0.0
 
@@ -123,7 +141,7 @@ def render_site(out, cfg, out_dir, build_date=None):
     env.globals["mlc"] = lambda s: s.lower()
     env.globals.update(pub_date=fr.pub_date, cutoff_date=fr.cutoff_date, data_month=fr.data_month)
     env.filters.update(f1=f1, f2=f2, fint=fint, fdelta=fdelta, date_fr=date_fr, iso_my=iso_my, pct=fr.pct, pct1=fr.pct1)
-    env.globals.update(elo=(cfg.engine == "elo"), cfg=cfg, span_fr=span_fr, month_label=month_label,
+    env.globals.update(elo=(cfg.engine == "elo"), cfg=cfg, span_fr=span_fr, comp_kind=comp_kind, month_label=month_label,
                        _=fr.gettext, _h=fr.html, _n=fr.ngettext, lang="fr")
 
     months = out.months

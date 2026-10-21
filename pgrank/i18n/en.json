@@ -210,5 +210,20 @@
  "Publié le {date}, avec les compétitions terminées jusqu’au {cutoff}.": "Published on {date}, with competitions that ended up to {cutoff}.",
  "Un pilote à 0 point termine ex æquo dernier.": "A pilot with 0 points finishes tied for last.",
  "{n} nouvelle compétition depuis le classement précédent.": "{n} new competition since the previous ranking.",
- "{n} nouvelles compétitions depuis le classement précédent.": "{n} new competitions since the previous ranking."
+ "{n} nouvelles compétitions depuis le classement précédent.": "{n} new competitions since the previous ranking.",
+ "100 pilotes ou plus": "100 pilots or more",
+ "50 pilotes ou plus": "50 pilots or more",
+ "Années": "Years",
+ "Championnats du monde et continentaux": "World and continental championships",
+ "Comment lire ce classement ?": "How to read this ranking",
+ "Coupe du monde (PWC)": "World Cup (PWC)",
+ "Langue": "Language",
+ "Taille du plateau": "Field size",
+ "Tous plateaux": "Any field size",
+ "Tous types": "All types",
+ "Type de compétition": "Competition type",
+ "avant {r}": "before {r}",
+ "js.ncomps": "{n} competition(s)",
+ "{n} compétition": "{n} competition",
+ "{n} compétitions": "{n} competitions"
 }

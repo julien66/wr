@@ -210,5 +210,20 @@
  "Publié le {date}, avec les compétitions terminées jusqu’au {cutoff}.": "Publicada el {date}, con las competiciones terminadas hasta el {cutoff}.",
  "Un pilote à 0 point termine ex æquo dernier.": "Un piloto con 0 puntos termina empatado en último lugar.",
  "{n} nouvelle compétition depuis le classement précédent.": "{n} competición nueva desde la clasificación anterior.",
- "{n} nouvelles compétitions depuis le classement précédent.": "{n} competiciones nuevas desde la clasificación anterior."
+ "{n} nouvelles compétitions depuis le classement précédent.": "{n} competiciones nuevas desde la clasificación anterior.",
+ "100 pilotes ou plus": "100 pilotos o más",
+ "50 pilotes ou plus": "50 pilotos o más",
+ "Années": "Años",
+ "Championnats du monde et continentaux": "Campeonatos mundiales y continentales",
+ "Comment lire ce classement ?": "Cómo leer esta clasificación",
+ "Coupe du monde (PWC)": "Copa del Mundo (PWC)",
+ "Langue": "Idioma",
+ "Taille du plateau": "Tamaño del grupo",
+ "Tous plateaux": "Cualquier tamaño",
+ "Tous types": "Todos los tipos",
+ "Type de compétition": "Tipo de competición",
+ "avant {r}": "antes {r}",
+ "js.ncomps": "{n} competición(es)",
+ "{n} compétition": "{n} competición",
+ "{n} compétitions": "{n} competiciones"
 }

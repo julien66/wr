@@ -38,7 +38,7 @@
   <caption class="sr">{{ _("Calcul pilote par pilote") }}</caption>
   <thead><tr>
     <th scope="col" class="rk">{{ _("Rang") }}</th><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num hide-s">{{ _("Score") }}</th>
-    {% if elo %}<th scope="col" class="num hide-s">{{ _("Duels gagnés") }}</th><th scope="col" class="num hide-s">{{ _("Attendu") }}</th>{% else %}<th scope="col" class="num hide-s">Rang attendu</th>{% endif %}<th scope="col">{{ _("Avant") }}</th><th scope="col">{{ _("Après") }}</th>
+    {% if elo %}<th scope="col" class="num hide-s">{{ _("Duels gagnés") }}</th><th scope="col" class="num hide-s">{{ _("Attendu") }}</th>{% else %}<th scope="col" class="num hide-s">Rang attendu</th>{% endif %}<th scope="col" class="hide-s">{{ _("Avant") }}</th><th scope="col">{{ _("Après") }}</th>
     <th scope="col" class="num">{{ _("Écart") }}</th><th scope="col" class="bd hide-s">{{ _("Mouvement") }}</th>
   </tr></thead>
   <tbody>
@@ -49,8 +49,8 @@
     <td class="num hide-s">{{ r.score|round|int if r.score is not none }}</td>
     {% if elo %}<td class="num hide-s">{{ (r.won * 100)|pct }}</td><td class="num hide-s" title="{{ _('Rang attendu : {r} (1 + nombre moyen de pilotes classés devant)', r=r.exp_rank) }}">{{ (r.exp_prob * 100)|pct }}</td>
     {% else %}<td class="num hide-s" title="Probabilité de victoire attendue : {{ (r.exp_prob * 100)|f1 }} %">{{ r.exp_rank }}</td>{% endif %}
-    {% if elo %}<td class="st"><b>{{ r.rt_pre|round|int }}</b><small>K {{ r.k|round|int }}</small>{% if r.inflated %}<small class="idle">{{ _("K relevé après {m} mois sans compétition", m=r.idle|round|int) }}</small>{% elif r.prior == 0 %}<small>{{ _("première compétition") }}</small>{% endif %}</td>
-    <td class="st"><b>{{ r.rt_post|round|int }}</b></td>
+    {% if elo %}<td class="st hide-s"><b>{{ r.rt_pre|round|int }}</b><small>K {{ r.k|round|int }}</small>{% if r.inflated %}<small class="idle">{{ _("K relevé après {m} mois sans compétition", m=r.idle|round|int) }}</small>{% elif r.prior == 0 %}<small>{{ _("première compétition") }}</small>{% endif %}</td>
+    <td class="st"><b>{{ r.rt_post|round|int }}</b><small class="show-s">{{ _("avant {r}", r=r.rt_pre|round|int) }}</small></td>
     {% else %}<td class="st"><b>{{ r.rt_pre|f1 }}</b><small>μ {{ r.mu_pre|f1 }}, σ {{ r.sigma_pre|f2 }}</small>{% if r.inflated %}<small class="idle">σ relevé de {{ r.sigma_raw|f2 }} après {{ r.idle|round|int }} mois sans compétition</small>{% elif r.prior == 0 %}<small>première compétition</small>{% endif %}</td>
     <td class="st"><b>{{ r.rt_post|f1 }}</b><small>μ {{ r.mu_post|f1 }}, σ {{ r.sigma_post|f2 }}</small></td>
     {% endif %}

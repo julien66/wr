@@ -210,5 +210,20 @@
  "Publié le {date}, avec les compétitions terminées jusqu’au {cutoff}.": "Veröffentlicht am {date}, mit den bis zum {cutoff} beendeten Wettbewerben.",
  "Un pilote à 0 point termine ex æquo dernier.": "Ein Pilot mit 0 Punkten wird gemeinsam Letzter.",
  "{n} nouvelle compétition depuis le classement précédent.": "{n} neuer Wettbewerb seit der letzten Rangliste.",
- "{n} nouvelles compétitions depuis le classement précédent.": "{n} neue Wettbewerbe seit der letzten Rangliste."
+ "{n} nouvelles compétitions depuis le classement précédent.": "{n} neue Wettbewerbe seit der letzten Rangliste.",
+ "100 pilotes ou plus": "100 Piloten oder mehr",
+ "50 pilotes ou plus": "50 Piloten oder mehr",
+ "Années": "Jahre",
+ "Championnats du monde et continentaux": "Welt- und Kontinentalmeisterschaften",
+ "Comment lire ce classement ?": "So liest man diese Rangliste",
+ "Coupe du monde (PWC)": "Weltcup (PWC)",
+ "Langue": "Sprache",
+ "Taille du plateau": "Teilnehmerzahl",
+ "Tous plateaux": "Alle Teilnehmerzahlen",
+ "Tous types": "Alle Arten",
+ "Type de compétition": "Wettbewerbsart",
+ "avant {r}": "vorher {r}",
+ "js.ncomps": "{n} Wettbewerb(e)",
+ "{n} compétition": "{n} Wettbewerb",
+ "{n} compétitions": "{n} Wettbewerbe"
 }
