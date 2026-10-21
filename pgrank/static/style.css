@@ -45,7 +45,7 @@ a:hover { text-decoration-thickness: 2px; }
 .brand .mark { position: relative; width: 26px; height: 10px; border-radius: 5px; background: var(--accent-soft); display: inline-block; }
 .brand .mark i { position: absolute; inset: 0 auto 0 0; width: 55%; border-radius: 5px 0 0 5px; background: var(--accent); }
 .brand .mark b { position: absolute; top: -2px; left: calc(55% - 7px); width: 14px; height: 14px; border-radius: 50%; background: var(--paper); border: 3px solid var(--accent); }
-.top nav { display: flex; gap: 22px; }
+.top nav { display: flex; flex-wrap: wrap; gap: 4px 22px; }
 .top nav a { color: var(--muted); text-decoration: none; font-weight: 500; padding-block: 4px; border-bottom: 2px solid transparent; }
 .top nav a:hover { color: var(--ink); }
 .top nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
@@ -296,3 +296,44 @@ table.leaders { max-width: 760px; }
 .rt small.sd.hi{font-style:italic;opacity:.75}
 .band.sd::before{background:var(--accent-soft)}
 tr.off .band.sd::before{background:var(--rule)}
+
+/* ---------- article WPRS ---------- */
+.byline { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+.prose h3 { font-family: var(--sans); font-weight: 700; font-stretch: 85%; font-size: 1.1rem; margin: 30px 0 8px; }
+.prose .formula { font-family: var(--sans); font-size: 16px; background: var(--paper); border-left: 3px solid var(--accent);
+  padding: 10px 14px; overflow-x: auto; white-space: nowrap; }
+.prose .mini { font-size: 14px; line-height: 1.45; }
+.prose .mini td { vertical-align: top; }
+.wide { max-width: 980px; margin-bottom: 18px; }
+.biases { font-family: var(--sans); font-size: 14px; line-height: 1.45; min-width: 640px; }
+.biases th[scope="row"] { font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--rule); padding-right: 14px; vertical-align: top; width: 20%; }
+.biases td { vertical-align: top; }
+.figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 0 20px; max-width: 980px; }
+.fig { margin: 18px 0 22px; max-width: 760px; font-family: var(--sans); }
+.figs .fig { max-width: none; }
+.fig figcaption b { display: block; font-size: 15px; line-height: 1.3; }
+.fig figcaption span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.fig .src { color: var(--muted); font-size: 12px; margin: 6px 0 10px; }
+.bars { display: flex; align-items: flex-end; gap: 10px; height: 200px; margin-top: 14px; border-bottom: 1px solid var(--muted); }
+.bar { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; }
+.bar i { display: block; width: min(70px, 100%); height: calc(var(--h) * 0.8%); background: var(--rule); border-radius: 4px 4px 0 0; }
+.bar.on i { background: var(--accent); }
+.bar .v { font-size: 13px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; }
+.bar .k { position: absolute; top: 100%; margin-top: 6px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.25; }
+.fig .bars + .src { margin-top: 44px; }
+.curve { width: 100%; height: auto; display: block; margin-top: 10px; }
+.curve .gl line { stroke: var(--rule); stroke-width: 1; }
+.curve .tk { font: 16px var(--sans); fill: var(--muted); }
+.curve .ref { stroke: var(--muted); stroke-dasharray: 4 4; }
+.curve .ln { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+.curve .dot { fill: var(--accent); stroke: var(--paper); stroke-width: 2; }
+.curve .lb { font: 600 18px var(--sans); fill: var(--ink); }
+@media (max-width: 720px) {
+  .biases { min-width: 0; }
+  .biases thead { display: none; }
+  .biases tr, .biases th[scope="row"], .biases td { display: block; width: auto; border: 0; padding: 0; }
+  .biases tr { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .biases td { margin-top: 4px; }
+  .biases td + td { color: var(--muted); }
+  .bar .k { font-size: 11px; }
+}

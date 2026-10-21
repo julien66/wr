@@ -255,6 +255,11 @@ def render_site(out, cfg, out_dir, build_date=None):
             n_pilots=len(out.pilots), first=months[0], n_results=sum(t.n_pilots for t in all_comps if t.rated),
             skipped=[t for t in all_comps if not t.rated]), encoding="utf-8")
 
+    # ---------- article WPRS ----------
+    (out_dir / "wprs.html").write_text(
+        env.get_template("wprs.html").render(**common, root="", page="wprs", title="Les biais du WPRS"),
+        encoding="utf-8")
+
     # ---------- exports CSV ----------
     with open(out_dir / "exports" / "calculs_par_competition.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
