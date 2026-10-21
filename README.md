@@ -171,3 +171,11 @@ Le site dynamique choisit la langue du navigateur (en-tête `Accept-Language`) e
 - **Retrait d'un pilote** (droit d'effacement / d'opposition) : ajouter son numéro CIVL à `data/removals.csv`, puis relancer `build_db.py`.
   Son nom, sa nation et son genre disparaissent, sa page devient introuvable ; sa ligne reste anonyme (« — ») pour garder les rangs intacts.
 - Déploiement sur Render : voir `DEPLOY_RENDER.md`.
+
+## Licence
+
+Le code de ce projet est un logiciel libre, distribué sous la licence **GNU Affero General Public License v3.0** (AGPL-3.0) : voir le fichier [`LICENSE`](LICENSE).
+Vous pouvez l'utiliser, l'étudier, le modifier et le redistribuer. Si vous mettez en ligne une version modifiée (site web ou API),
+vous devez en publier le code source sous la même licence.
+
+Les résultats de compétition (`data/civl_data.db`) proviennent de la CIVL (FAI) et ne sont pas couverts par cette licence.
