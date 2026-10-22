@@ -9,6 +9,8 @@ from pathlib import Path
 
 from markupsafe import Markup
 
+from pgrank import countries
+
 LANGS = {"fr": "Français", "en": "English", "de": "Deutsch", "es": "Español"}
 DEFAULT = "fr"          # langue des textes sources
 FALLBACK = "en"         # langue servie quand celle du navigateur n'est pas disponible
@@ -64,6 +66,10 @@ class Locale:
         out = {k: v for k, v in base.items() if k.startswith("js.")}
         out.update({k: v for k, v in self.cat.items() if k.startswith("js.")})
         return out
+
+    def country(self, code):
+        """Nom complet d'un pays à partir de son code CIVL (FRA → France, GER → Allemagne…)."""
+        return countries.name(code, self.lang)
 
     # ---------- nombres ----------
     def f1(self, x):

@@ -13,7 +13,7 @@
 <div class="tools facets">
   <a class="chip" href="{{ root }}search?q={{ q|urlencode }}{{ '&sex=F' if sex }}"{% if not nation %} aria-current="true"{% endif %}>{{ _("Tous pays") }}</a>
   {% for code, n in facets %}
-  <a class="chip" href="{{ root }}search?q={{ q|urlencode }}&nation={{ code|urlencode }}{{ '&sex=F' if sex }}"{% if nation == code %} aria-current="true"{% endif %}>{{ code or '?' }} <small>{{ n }}</small></a>
+  <a class="chip" href="{{ root }}search?q={{ q|urlencode }}&nation={{ code|urlencode }}{{ '&sex=F' if sex }}"{% if code %} title="{{ code|country }}"{% endif %}{% if nation == code %} aria-current="true"{% endif %}>{{ code or '?' }} <small>{{ n }}</small></a>
   {% endfor %}
   <a class="chip toggle" href="{{ root }}search?q={{ q|urlencode }}{{ '&nation=' ~ nation if nation }}{{ '' if sex else '&sex=F' }}"{% if sex %} aria-current="true"{% endif %}>{{ _("Féminin seulement") }}</a>
 </div>
@@ -26,7 +26,7 @@
   {% for p in pilots %}
   <tr{% if p.pos and not p.active %} class="off"{% endif %}>
     <td class="rk">{{ p.rank or '–' }}{% if p.rank_f %}<small class="sub">{{ _("féminin : {r}", r=p.rank_f) }}</small>{% endif %}</td>
-    <td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ p.civlid }}">{{ p.name }}</a></span> <span class="nat">{{ p.nation }}</span>{% if p.gender == 'F' %} <span class="nat">F</span>{% endif %}<small class="sub">CIVL {{ p.civlid }}</small></td>
+    <td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ p.civlid }}">{{ p.name }}</a></span> <span class="nat" title="{{ p.nation|country }}">{{ p.nation }}</span>{% if p.gender == 'F' %} <span class="nat">F</span>{% endif %}<small class="sub">CIVL {{ p.civlid }}</small></td>
     <td class="num rt">{{ p.rating|round|int if p.rating is not none }}</td>
     <td class="num hide-s">{{ p.peak|round|int if p.peak is not none }}</td>
     <td class="num hide-s">{{ p.n_comps or 0 }}</td>

@@ -34,7 +34,7 @@
   <tbody>
   {% for r in reigns %}
   <tr>
-    <td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ r.civ }}">{{ r.name }}</a></span> <span class="nat">{{ r.nation }}</span></td>
+    <td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ r.civ }}">{{ r.name }}</a></span> <span class="nat" title="{{ r.nation|country }}">{{ r.nation }}</span></td>
     <td>{{ r.start|iso_my_k }}</td>
     <td>{% if r.end == now %}<b>{{ _("en cours") }}</b>{% else %}{{ r.end|iso_my_k }}{% endif %}</td>
     <td class="num">{{ _n("{n} mois", "{n} mois", r.n) }}</td>
@@ -49,7 +49,7 @@
   <thead><tr><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num">{{ _("Mois") }}</th><th scope="col" class="num">{{ _("Règnes") }}</th></tr></thead>
   <tbody>
   {% for h in honours %}
-  <tr><td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ h.civ }}">{{ h.name }}</a></span> <span class="nat">{{ h.nation }}</span></td>
+  <tr><td class="pl"><span class="nm"><a href="{{ root }}pilot/{{ h.civ }}">{{ h.name }}</a></span> <span class="nat" title="{{ h.nation|country }}">{{ h.nation }}</span></td>
       <td class="num">{{ h.n }}</td><td class="num">{{ h.reigns }}</td></tr>
   {% endfor %}
   </tbody>
