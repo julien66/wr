@@ -200,6 +200,11 @@ def create_app(db_path, proxy=False):
         txt = f"User-agent: *\nDisallow: /api/\nDisallow: /search\nDisallow: /exports/\nDisallow: /compare\nDisallow: /*?lang=\n\nSitemap: {base}/sitemap.xml\n"
         return app.response_class(txt, mimetype="text/plain")
 
+    @app.route("/favicon.ico")
+    def favicon():
+        """Les navigateurs et robots demandent /favicon.ico d'office : on sert l'icône PNG du site."""
+        return app.send_static_file("favicon-32.png")
+
     @app.route("/sitemap.xml")
     def sitemap():
         base = request.url_root.rstrip("/")

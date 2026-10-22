@@ -14,6 +14,9 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{{ og_image }}">{% else %}<meta name="twitter:card" content="summary">{% endif %}
+<link rel="icon" href="{{ root }}static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="{{ root }}static/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="{{ root }}static/apple-touch-icon.png">
 <link rel="stylesheet" href="{{ root }}static/style.css{% if asset_v %}?v={{ asset_v.css }}{% endif %}">
 </head>
 <body class="p-{{ page }}">
@@ -26,7 +29,7 @@
     <a href="{{ root }}method"{% if page == 'method' %} aria-current="page"{% endif %}>{{ _("Méthode") }}</a>
     <a href="{{ root }}wprs"{% if page == 'wprs' %} aria-current="page"{% endif %}>{{ _("Analyse WPRS") }}</a>
   </nav>
-  <form class="gsearch" action="{{ root }}search" role="search"><input type="search" name="q" value="{{ q or '' }}" placeholder="{{ _('Chercher un pilote ou une compétition') }}" aria-label="{{ _('Chercher un pilote ou une compétition') }}" autocomplete="off"><input type="hidden" name="go" value="1"></form>
+  <form class="gsearch" action="{{ root }}search" role="search"><input type="search" name="q" value="{{ q or '' }}" placeholder="{{ _('Pilote ou compétition') }}" aria-label="{{ _('Chercher un pilote ou une compétition') }}" autocomplete="off"><input type="hidden" name="go" value="1"></form>
   {% if langs %}<details class="langsw">
     <summary aria-label="{{ _('Langue') }} : {{ langs[lang] }}">{{ lang|upper }}</summary>
     <div>{% for code, label in langs.items() %}<a href="{{ lang_href(code) if lang_href is defined else '?lang=' ~ code }}"{% if code == lang %} aria-current="true"{% endif %} hreflang="{{ code }}" lang="{{ code }}">{{ label }}</a>{% endfor %}</div>

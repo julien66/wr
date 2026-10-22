@@ -229,7 +229,7 @@ footer p { margin: 4px 0; } footer a { margin-right: 16px; }
 .pager a[aria-current="page"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
 .gsearch { margin-left: auto; }
-.gsearch input { font: inherit; padding: 6px 10px; width: 210px; min-width: 0; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); }
+.gsearch input { font: inherit; padding: 6px 10px; width: 210px; min-width: 0; text-overflow: ellipsis; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); }
 .gsearch.big input { width: min(560px, 100%); padding: 10px 14px; }
 .top { flex-wrap: wrap; gap: 10px 20px; }
 .tabs { display: flex; gap: 6px; }
