@@ -230,7 +230,7 @@ footer p { margin: 4px 0; } footer a { margin-right: 16px; }
 .pager a[aria-current="page"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
 .gsearch { margin-left: auto; }
-.gsearch input { font: inherit; padding: 6px 10px; min-width: 220px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); }
+.gsearch input { font: inherit; padding: 6px 10px; width: 210px; min-width: 0; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); }
 .gsearch.big input { width: min(560px, 100%); padding: 10px 14px; }
 .top { flex-wrap: wrap; gap: 10px 20px; }
 .tabs { display: flex; gap: 6px; }
@@ -387,3 +387,25 @@ footer p.oss a { margin-right: 0; }
 .yblock[open] summary::before { content: "▾"; }
 .yblock summary .yh { margin: 0; }
 .yblock summary span { color: var(--muted); font-size: 13.5px; }
+
+/* ---------- comparaison de deux pilotes ---------- */
+.vs { font-weight: 400; color: var(--muted); font-size: .6em; }
+.cmpform { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; margin-top: 22px; }
+.cmpform .pick { margin-left: 0; flex: 1 1 260px; max-width: 380px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.cmpform .pick input { width: 100%; min-width: 0; padding: 8px 12px; background: var(--paper); font-weight: 400; }
+.cmpform button { font: inherit; font-weight: 600; padding: 8px 16px; border: 1px solid var(--accent); border-radius: 4px; background: var(--accent); color: var(--bg); cursor: pointer; }
+.cmp { max-width: 760px; margin-top: 26px; }
+.cmp tbody th { text-align: left; font-weight: 500; color: var(--muted); padding: 9px 8px; border-bottom: 1px solid var(--rule); }
+.cmp thead th { white-space: normal; position: static; }
+.cmp thead a { color: var(--ink); font-size: 15px; }
+.cmp thead .ca { border-bottom-color: var(--accent); } .cmp thead .cb { border-bottom-color: var(--rk); }
+.cmp .rt small.sd { display: block; }
+.duel { margin: 18px 0; font-size: 16px; max-width: 760px; }
+.cmpchart .chartscroll { overflow-x: auto; }
+.cmpchart svg { width: 100%; min-width: 640px; height: auto; display: block; }
+.cmpchart .gl { stroke: var(--rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.cmpchart .tk { font: 14px var(--sans); fill: var(--muted); }
+.cmpchart .la, .cmpchart .lb { fill: none; stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.cmpchart .la { stroke: var(--accent); } .cmpchart .lb { stroke: var(--rk); }
+.key .k-a { width: 16px; height: 2px; background: var(--accent); } .key .k-b { width: 16px; height: 2px; background: var(--rk); }
+td.win { font-weight: 700; color: var(--up); }

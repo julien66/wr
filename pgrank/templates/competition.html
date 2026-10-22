@@ -4,7 +4,7 @@
   <p class="crumb"><a href="{{ root }}competitions.html">{{ _("Compétitions") }}</a> <a href="{{ root }}ranking/{{ month_key }}.html">{{ _("Classement du {date}", date=pub_date_k) }}</a></p>
   <h1 class="long">{{ c.name }}</h1>
   <p class="lede">{{ _("{span}, {n} pilotes", span=span_fr(c.start, c.end), n=t.n_pilots) }}{% if t.rated and t.n_nations %}{{ _(" de {n} pays", n=t.n_nations) }}{% endif %}.
-    <a href="{{ c.url }}">{{ _("Résultats officiels sur le site de la CIVL") }}</a></p>
+    <a href="{{ c.url }}">{{ _("Résultats officiels sur le site de la CIVL") }}</a>{% if dyn %} · <a href="{{ root }}exports/competition_{{ c.id }}.csv" download>{{ _("Calcul en CSV") }}</a>{% endif %}</p>
 </section>
 
 {% if not t.rated %}
