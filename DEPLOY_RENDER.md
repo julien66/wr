@@ -33,11 +33,12 @@ git push -u origin main
 
 ## 4. Mettre à jour les résultats
 
-Remplacer `data/civl_data.db` par la nouvelle base, puis :
+Chaque mois, après la publication du classement WPRS (le 1er) :
 ```bash
-git add data/civl_data.db && git commit -m "Mise à jour des résultats" && git push
+python update.py
+git add data && git commit -m "Mise à jour des résultats" && git push
 ```
-Render redéploie seul et recalcule le classement.
+`update.py` ajoute à `data/civl_data.db` les compétitions manquantes (voir le README). Render redéploie seul et recalcule le classement.
 
 ## 5. Retirer un pilote
 

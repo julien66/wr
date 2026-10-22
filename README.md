@@ -54,9 +54,27 @@ python build_db.py --db data/civl_data.db --out ranking.db   # calcule et écrit
 python app.py --db ranking.db                                 # http://127.0.0.1:5000
 ```
 
-**Mise à jour mensuelle** : mettez à jour `data/civl_data.db` (votre collecte), relancez `build_db.py`, puis redémarrez le serveur.
+## Mise à jour mensuelle
+
+La CIVL publie un nouveau classement WPRS le 1er de chaque mois. Après cette date, une seule commande :
+
+```bash
+pip install -r requirements-wprs.txt     # une fois (requests, openpyxl)
+python update.py --dry-run               # facultatif : liste ce qui manque, sans rien écrire
+python update.py                         # importe, télécharge le WPRS du mois, recalcule ranking.db
+git add data && git commit -m "Mise à jour des résultats" && git push   # Render redéploie le site
+```
+
+`update.py` lit sur civlcomps la liste des compétitions du dernier classement publié (3 dernières années),
+importe dans `data/civl_data.db` celles qui manquent, réimporte celles dont civlcomps a mis à jour les résultats
+(colonne « Results Updated », mémorisée dans la table `sync_state`), télécharge le classement WPRS du mois dans
+`data/wprs/`, puis relance `build_db.py`. Une page à la fois, 8 s entre deux pages (`--pause`) ; une page incomplète
+(nombre de pilotes différent de celui annoncé) est refusée et reprise au passage suivant. Autres options :
+`--refetch ID…` (réimporter des compétitions), `--no-wprs`, `--no-build`.
+
 Tout est recalculé depuis zéro (déterministe) : une compétition ajoutée avec retard se répercute
-correctement sur les mois suivants.
+correctement sur les mois suivants. Les compétitions d'un mois apparaissent dans le classement publié le 1er du mois suivant,
+comme pour le WPRS. Le genre des nouveaux pilotes absents de `data/genders.csv` est pris dans les classements WPRS téléchargés.
 
 ## Règles communes aux deux moteurs
 
@@ -98,6 +116,7 @@ compétitions : c'est le défaut.
 ```bash
 python tests/test_engine.py    # moteur : inactivité, statuts mensuels, ex æquo, égalité avec des appels directs à openskill
 python tests/test_wprs.py      # comparaison WPRS : choix du classement du mois, pilotes sans points
+python tests/test_update.py    # mise à jour : lecture des pages civlcomps, pages incomplètes refusées
 ```
 
 ## Comparaison avec le WPRS officiel
@@ -178,7 +197,7 @@ Le site choisit la langue du navigateur (en-tête `Accept-Language`) et la mémo
 - **Serveur de production** : `pip install -r requirements.txt`, puis
   `RANKING_DB=/chemin/ranking.db RANKING_PROXY=1 gunicorn -w 3 -b 127.0.0.1:8000 wsgi:application`, derrière Caddy ou nginx (HTTPS).
   `RANKING_PROXY=1` (ou `--proxy`) à n'activer que derrière un reverse proxy de confiance : l'adresse du visiteur est lue dans `X-Forwarded-For`.
-- **Mise à jour** : régénérer `ranking.db` en local (`build_db.py`), la copier sur le serveur, redémarrer gunicorn.
+- **Mise à jour** : `python update.py` (voir « Mise à jour mensuelle »), puis copier `ranking.db` sur le serveur et redémarrer gunicorn.
 - **Cache** : les pages sont servies avec `Cache-Control: private` (la langue dépend d'un cookie) ; ne pas les mettre en cache partagé (CDN) sans
   exclure le cookie `lang` de la clé de cache, sinon une langue serait servie à tous. Les fichiers `/static/` sont versionnés et peuvent l'être.
 - **Protections** : en-têtes de sécurité (CSP, nosniff, anti-framing), limitation de débit par adresse (400 requêtes/min, 120 pour la recherche, par processus),

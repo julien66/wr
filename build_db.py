@@ -4,12 +4,25 @@
     python build_db.py --db civl_data.db --out ranking.db [--genders data/genders.csv]
 """
 import argparse
+import csv
 import datetime as dt
+import gzip
 import time
 from pathlib import Path
 
 from pgrank import engine, load, store
 from pgrank.config import Config
+
+
+def wprs_genders(folder):
+    """{civlid: M/F} lu dans les classements WPRS téléchargés (le plus récent l'emporte)."""
+    g = {}
+    for p in sorted(folder.glob("*.csv.gz")):
+        with gzip.open(p, "rt", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                if r.get("gender") in ("M", "F"):
+                    g[str(r["civlid"]).strip()] = r["gender"]
+    return g
 
 
 def main():
@@ -21,6 +34,8 @@ def main():
                     help="CSV civlid,gender (M/F) ou liste CIVL .xlsx ; sert au classement féminin")
     ap.add_argument("--genders-manual", default=str(Path(__file__).parent / "data" / "genders_manual.csv"),
                     help="corrections manuelles civlid,gender : prioritaires sur --genders")
+    ap.add_argument("--wprs-dir", default=str(Path(__file__).parent / "data" / "wprs"),
+                    help="classements WPRS (AAAA-MM.csv.gz) : genre des pilotes absents de --genders")
     ap.add_argument("--k", type=float, default=d.elo_params["k"])
     ap.add_argument("--removals", default=str(Path(__file__).parent / "data" / "removals.csv"),
                     help="pilotes à anonymiser (demande de retrait) : un civlid par ligne")
@@ -31,6 +46,12 @@ def main():
                  elo_params={"k": a.k, "boost": a.boost, "scale": d.elo_params["scale"]})
     t0 = time.time()
     genders = store.read_genders(a.genders) if a.genders and Path(a.genders).exists() else {}
+    if a.wprs_dir and Path(a.wprs_dir).is_dir():
+        extra = wprs_genders(Path(a.wprs_dir))
+        added = {k: v for k, v in extra.items() if k not in genders}
+        genders.update(added)
+        if added:
+            print(f"{len(added)} genres complétés par les classements WPRS")
     if a.genders_manual and Path(a.genders_manual).exists():
         manual = store.read_genders(a.genders_manual)
         genders.update(manual)
