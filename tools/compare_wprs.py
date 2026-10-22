@@ -15,7 +15,9 @@ Trois mesures, sur exactement les mêmes duels pour les deux classements :
   - « ≥ 3 épreuves » : duels entre pilotes ayant déjà au moins 3 épreuves dans la base (mesure de l'article) ;
   - « tous » : tous les duels ;
   - « classés WPRS » : duels entre pilotes ayant tous deux des points WPRS et ≥ 3 épreuves
-    (le WPRS n'est alors jamais pénalisé par des pilotes à 0 point).
+    (le WPRS n'est alors jamais pénalisé par des pilotes à 0 point) ;
+  - « 30 meilleurs » : duels entre les 30 meilleurs Elo de l'épreuve parmi ceux qui ont ≥ 10 épreuves
+    (même sélection que la mesure « elite » du moteur).
 """
 import argparse
 import bisect
@@ -65,7 +67,7 @@ def compare(traces, wprs, since=None, until=None):
         if since and key < since or until and key > until:
             continue
         pub = ranking_before(dates, c.start)
-        if pub is None or (c.start - pub).days > 62:     # pas de classement récent pour cette épreuve
+        if pub is None or (c.start - pub).days > 45:     # pas de classement récent pour cette épreuve
             continue
         pts = wprs[pub]
         ranks = np.array([r["rank"] for r in t.rows], float)
@@ -73,9 +75,14 @@ def compare(traces, wprs, since=None, until=None):
         w = np.array([pts.get(r["civlid"], 0.0) for r in t.rows])
         exp = np.array([r["prior"] >= 3 for r in t.rows])
         both = exp & (w > 0)
+        prior = np.array([r["prior"] for r in t.rows])
+        vet = np.where(prior >= 10)[0]
+        elite = np.zeros(len(ranks), bool)
+        if len(vet) >= 4:
+            elite[vet[np.argsort(-elo[vet])[:30]]] = True
         row = {"id": c.id, "name": c.name, "start": c.start.isoformat(), "wprs": pub.isoformat(),
                "pilots": len(ranks), "no_wprs": float((w == 0).mean())}
-        for tag, mask in (("exp", exp), ("all", np.ones(len(ranks), bool)), ("ranked", both)):
+        for tag, mask in (("exp", exp), ("all", np.ones(len(ranks), bool)), ("ranked", both), ("elite", elite)):
             if mask.sum() >= 2:
                 a_e, n = pairwise_accuracy(elo[mask], ranks[mask])
                 a_w, _ = pairwise_accuracy(w[mask], ranks[mask])
@@ -119,7 +126,8 @@ def report(rows):
                  f"{pct(np.mean([r['no_wprs'] for r in rows]))} de pilotes sans points WPRS en moyenne\n")
     lines.append("| Duels | Elo | WPRS | Écart | Duels comptés | Épreuves où l'Elo fait mieux |")
     lines.append("|---|---|---|---|---|---|")
-    for tag, label in (("exp", "Pilotes ≥ 3 épreuves"), ("all", "Tous"), ("ranked", "Classés WPRS et ≥ 3 épreuves")):
+    for tag, label in (("exp", "Pilotes ≥ 3 épreuves"), ("all", "Tous"), ("ranked", "Classés WPRS et ≥ 3 épreuves"),
+                       ("elite", "30 meilleurs de l'épreuve (≥ 10 épreuves)")):
         e, w, n, k, wins = summary(rows, tag)
         lines.append(f"| {label} | {pct(e)} | {pct(w)} | {pt(e - w)} | {num(n)} | {wins} / {k} |")
     lines.append("\nPar année (pilotes ≥ 3 épreuves) :\n")

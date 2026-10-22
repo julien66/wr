@@ -30,7 +30,7 @@
       <tr><th scope="row">The weather decides the value</th><td>An event with 1 task is worth 0.5; with 3 tasks, 1.0</td><td>10% of events have only 1 task. In events with 60 pilots or more, the winner scores 28 points with 1 task (20 events), 44 with 2 tasks (74) and 62 with 3 tasks or more (381), median values</td></tr>
       <tr><th scope="row">A flat top</th><td>The placing is raised to a power close to 1: almost linear</td><td>Median over 475 events with 60 pilots or more: 2nd place scores 98.5% of the winner’s points, 5th 94%, 10th 87%, 25th 67%</td></tr>
       <tr><th scope="row">The field counts more than the result</th><td>P<sub>q</sub> and P<sub>n</sub> multiply everything: the same placing is worth more or less depending on the event</td><td>Median P<sub>q</sub> 0.43, from 0.26 (5% of events) to 0.77 (95%). P<sub>n</sub> hits its 1.2 cap in 39% of events</td></tr>
-      <tr><th scope="row">Circular reasoning</th><td>P<sub>q</sub> is computed from the registered pilots’ WPRS points: well ranked today, they make the event worth more tomorrow</td><td>13.5% of the pilots in an event have no WPRS points (average over 460 events): they count as zero in the field-quality calculation</td></tr>
+      <tr><th scope="row">Circular reasoning</th><td>P<sub>q</sub> is computed from the registered pilots’ WPRS points: well ranked today, they make the event worth more tomorrow</td><td>13.6% of the pilots in an event have no WPRS points (average over 458 events): they count as zero in the field-quality calculation</td></tr>
       <tr><th scope="row">Only 4 results count</th><td>No penalty for bad results, and every pilot picks their 4 best from all the events they have flown</td><td>The top 300 men all have exactly 4 counting results. Within this top 300, pilots who flew 9 events or more in 24 months are ranked 168 places higher by the CIVL than by the Elo (median), against 44 places for those who flew 1 to 3</td></tr>
       <tr><th scope="row">Results age off a cliff</th><td>T<sub>d</sub> is 99% at 6 months, 91% at 1 year, 50% at 18 months, 9% at 2 years</td><td>The window is 3 years on paper, about 18 months in practice</td></tr>
       <tr><th scope="row">A monthly update</th><td>The ranking is frozen between two publications</td><td>A Bulgarian proposal for 2026 (BUL 1) wants a weekly update: monthly rankings can miss back-to-back events</td></tr>
@@ -83,18 +83,18 @@
   </ul>
 
   <h2>The test: which predicts better?</h2>
-  <p>Over 460 competitions flown between December 2023 and September 2026, the Elo ranking predicts the finishing order better than that month’s CIVL ranking: 76.1% of duels correctly predicted against 72.5%, with chance at 50%.</p>
+  <p>Over 458 competitions flown between December 2023 and September 2026, the Elo ranking predicts the finishing order better than that month’s CIVL ranking: 76.1% of duels correctly predicted against 72.5%, with chance at 50%.</p>
   <p>The method is the same for both. For each event, we take the CIVL ranking published just before it starts (at most 45 days before) and the Elo rating just before. We look at each pair of pilots: it counts as a success if the better-rated pilot finished ahead, and as half a success if the ratings are equal. A pilot without CIVL points is rated zero.</p>
   <div class="scroll"><table class="mini">
     <thead><tr><th scope="col">Duels predicted</th><th scope="col" class="num">Elo</th><th scope="col" class="num">WPRS (CIVL)</th><th scope="col" class="num">Gap</th></tr></thead>
     <tbody>
       <tr><td>Between pilots with at least 3 events (1.07 million duels)</td><td class="num"><b>76.1%</b></td><td class="num">72.5%</td><td class="num">+3.6 points</td></tr>
       <tr><td>All duels</td><td class="num"><b>74.8%</b></td><td class="num">72.3%</td><td class="num">+2.5 points</td></tr>
-      <tr><td>Among the top 30 of the event (at least 10 events each)</td><td class="num"><b>67.5%</b></td><td class="num">65.1%</td><td class="num">+2.4 points</td></tr>
+      <tr><td>Among the top 30 of the event (at least 10 events each)</td><td class="num"><b>67.4%</b></td><td class="num">65.0%</td><td class="num">+2.4 points</td></tr>
     </tbody>
   </table></div>
-  <p>The Elo wins in 369 events out of 460, or 80% of them. The gap is smaller among the best: at that level everyone is alike and the finishing order is very random for both rankings.</p>
-  <p>Two honest caveats. First, the WPRS was not designed to predict: it also serves to qualify pilots, reward attendance and stabilise start lists. Second, the Elo settings were chosen on the whole dataset, including these 460 events; its result is therefore a little optimistic. It has only a few parameters and its accuracy over the full history (74.9%) stays close to the one measured here, but we did not run a test on held-out data for this comparison.</p>
+  <p>The Elo wins in 365 events out of 458, or 80% of them. The gap does not come from pilots without points: between pilots who both have WPRS points (and at least 3 events), it is still 76.1% against 72.5%. The gap is smaller among the best: at that level everyone is alike and the finishing order is very random for both rankings.</p>
+  <p>Two honest caveats. First, the WPRS was not designed to predict: it also serves to qualify pilots, reward attendance and stabilise start lists. Second, the Elo settings were chosen on the whole dataset, including these 458 events; its result is therefore a little optimistic. It has only a few parameters and its accuracy over the full history (74.9%) stays close to the one measured here, but we did not run a test on held-out data for this comparison.</p>
 
   <h2>Concrete cases</h2>
   <p>The two rankings diverge most for pilots whose four good recent results hide the rest, or whose only recent result is poorly counted. Ranks on October 1, 2026: CIVL = overall WPRS ranking (men and women); Elo = rank among active pilots.</p>
@@ -137,12 +137,13 @@
   </ul>
 
   <h2>Conclusion: a complement, not a replacement</h2>
-  <p>The WPRS remains useful for what it was designed for: qualifying pilots, rewarding attendance, simplifying start lists. But as a measure of current level, it loses to a very simple algorithm that knows only the finishing order: 76.1% of duels correctly predicted against 72.5% over 460 events, and an advantage in 4 events out of 5.</p>
+  <p>The WPRS remains useful for what it was designed for: qualifying pilots, rewarding attendance, simplifying start lists. But as a measure of current level, it loses to a very simple algorithm that knows only the finishing order: 76.1% of duels correctly predicted against 72.5% over 458 events, and an advantage in 4 events out of 5.</p>
   <p>This gain comes from the biases that a change of method corrects (weather, field, four results, ageing), not from any particular sophistication. Flaws specific to the model remain, such as the lack of a confidence measure for pilots who have competed little, and the most promising way to address them is to show an uncertainty next to the rating. This site now does so: the ± shown next to each rating is explained on the <a href="{{ root }}method.html">Method</a> page.</p>
   <p>The ranking built here has one advantage: it can be proven wrong. If a pilot, an organiser or the CIVL finds a case where it is mistaken, the comparison is the same one we have just made: which predicts the next event better?</p>
 
   <h2>An open project, reproducible tests</h2>
   <p>This project is open source. The ranking code, the results database and the accuracy measure are published on <a href="https://github.com/julien66/wr">GitHub</a> under the free AGPL-3.0 licence. Anyone can rebuild the whole ranking from the CIVL results with a single command, find the Elo’s accuracy over the full history (74.9% of duels correctly predicted) and test their own settings with the same measure.</p>
   <p class="formula cmd">python build_db.py --db data/civl_data.db --out ranking.db</p>
-  <p>The comparison with the WPRS also needs the monthly CIVL rankings, which are not yet in the repository: that particular test cannot yet be redone identically from the published code.</p>
+  <p>The comparison with the WPRS can be redone too: the 36 monthly CIVL rankings used (November 2023 to October 2026, downloaded from civlcomps.org) are in the repository, along with the script that fetches them and the one that measures, event by event, the duels each ranking predicts correctly.</p>
+  <p class="formula cmd">python tools/compare_wprs.py --since 2023-12 --until 2026-09</p>
 </article>
