@@ -1,11 +1,13 @@
 # Classement mondial de parapente (Elo)
 
-Site web (Flask) calculé à partir de la base SQLite des résultats CIVL :
+Site web (Flask, `app.py`) qui lit une base SQLite (`ranking.db`) calculée par `build_db.py` à partir des résultats CIVL. Il est hébergé sur Render (voir `DEPLOY_RENDER.md`).
+
+Le site propose :
 
 - un **classement par mois** (état des niveaux à la fin de chaque mois) ;
 - une **page par compétition** qui montre, pilote par pilote, le calcul : rang réel, rang attendu, niveau avant et après, écart ;
-- une **page par pilote** : rang mondial, victoires/top 10/place médiane, **graphique de l'évolution du niveau compétition par compétition** et tableau des résultats (pilotes avec au moins `pilot_min_comps` = 3 compétitions) ;
-- les pilotes inactifs (plus de 18 mois sans compétition) **sortent du classement** : ils n'ont pas de rang et ne prennent la place de personne ; avec « Afficher les inactifs » ils apparaissent grisés et sans numéro à la place que leur niveau leur donnerait ; ils redeviennent « provisoires » (K relevé) à leur retour.
+- une **page par pilote** : rang mondial, victoires/top 10/place médiane, **graphique de l'évolution du niveau compétition par compétition** et tableau des résultats (tous les pilotes, sauf ceux retirés à leur demande) ;
+- les pilotes inactifs (plus de 18 mois sans compétition) **sortent du classement** : ils n'ont pas de rang et ne prennent la place de personne ; si on décoche « Masquer les inactifs » (`?actifs=0`), ils apparaissent grisés et sans numéro à la place que leur niveau leur donnerait ; ils redeviennent « provisoires » (K relevé) à leur retour.
 
 ## Moteur par défaut : Elo multijoueur
 
@@ -47,7 +49,7 @@ Le plancher de ±115 vient du K élevé (102) : même un vétéran bouge beaucou
 ## Utilisation
 
 ```bash
-pip install -r requirements-dyn.txt
+pip install -r requirements.txt
 python build_db.py --db data/civl_data.db --out ranking.db   # calcule et écrit la base (~1 min, ~500 Mo)
 python app.py --db ranking.db                                 # http://127.0.0.1:5000
 ```
@@ -77,7 +79,7 @@ Constaté sur les données CIVL (plateaux de 50 à 150 pilotes) :
   130, le 1ᵉʳ attendu 32ᵉ et le 6ᵉ attendu 92ᵉ gagnent tous deux +0,6) ; μ monte à chaque bon résultat, et le
   rating favorise les pilotes qui ont couru beaucoup de compétitions.
 
-Autres modèles OpenSkill essayés avec le même moteur (`--model`), sur les mêmes données :
+Autres modèles OpenSkill essayés avec le même moteur (`Config(model=...)`), sur les mêmes données :
 
 | Modèle | Duels bien prédits | Entre les 30 meilleurs | σ médian (vétérans) | Échelle de μ (top 300) |
 |---|---|---|---|---|
@@ -173,7 +175,7 @@ Le site choisit la langue du navigateur (en-tête `Accept-Language`) et la mémo
 
 ## Mise en ligne
 
-- **Serveur de production** : `pip install -r requirements-dyn.txt`, puis
+- **Serveur de production** : `pip install -r requirements.txt`, puis
   `RANKING_DB=/chemin/ranking.db RANKING_PROXY=1 gunicorn -w 3 -b 127.0.0.1:8000 wsgi:application`, derrière Caddy ou nginx (HTTPS).
   `RANKING_PROXY=1` (ou `--proxy`) à n'activer que derrière un reverse proxy de confiance : l'adresse du visiteur est lue dans `X-Forwarded-For`.
 - **Mise à jour** : régénérer `ranking.db` en local (`build_db.py`), la copier sur le serveur, redémarrer gunicorn.

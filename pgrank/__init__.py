@@ -1,1 +1,1 @@
-"""Classement mondial de parapente de compétition (OpenSkill / Plackett-Luce)."""
+"""Classement mondial de parapente de compétition (Elo)."""

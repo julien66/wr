@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Calcule le classement et l'écrit dans une base SQLite (ranking.db) pour le site dynamique (app.py).
+"""Calcule le classement et l'écrit dans une base SQLite (ranking.db) pour le site (app.py).
 
     python build_db.py --db civl_data.db --out ranking.db [--genders data/genders.csv]
 """
