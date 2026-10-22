@@ -30,7 +30,7 @@
       <tr><th scope="row">La météo décide de la valeur</th><td>Une épreuve à 1 manche vaut 0,5 ; à 3 manches, 1,0</td><td>10 % des épreuves n’ont qu’1 manche. Pour les épreuves de 60 pilotes ou plus, le vainqueur marque 28 points à 1 manche (20 épreuves), 44 à 2 manches (74) et 62 à 3 manches ou plus (381) en médiane</td></tr>
       <tr><th scope="row">Un sommet plat</th><td>La place est élevée à une puissance proche de 1 : presque linéaire</td><td>Médiane sur 475 épreuves de 60 pilotes ou plus : le 2e marque 98,5 % des points du vainqueur, le 5e 94 %, le 10e 87 %, le 25e 67 %</td></tr>
       <tr><th scope="row">Le plateau compte plus que le résultat</th><td>P<sub>q</sub> et P<sub>n</sub> multiplient tout : un même classement vaut plus ou moins selon l’épreuve</td><td>P<sub>q</sub> médian 0,43, de 0,26 (5 % des épreuves) à 0,77 (95 %). P<sub>n</sub> atteint son plafond de 1,2 dans 39 % des épreuves</td></tr>
-      <tr><th scope="row">Un raisonnement circulaire</th><td>P<sub>q</sub> est calculé avec les points WPRS des inscrits : bien classés aujourd’hui, ils font valoir davantage l’épreuve demain</td><td>13,5 % des pilotes d’une épreuve n’ont aucun point WPRS (moyenne sur 460 épreuves) : ils comptent zéro dans le calcul de la qualité du plateau</td></tr>
+      <tr><th scope="row">Un raisonnement circulaire</th><td>P<sub>q</sub> est calculé avec les points WPRS des inscrits : bien classés aujourd’hui, ils font valoir davantage l’épreuve demain</td><td>13,6 % des pilotes d’une épreuve n’ont aucun point WPRS (moyenne sur 458 épreuves) : ils comptent zéro dans le calcul de la qualité du plateau</td></tr>
       <tr><th scope="row">Seuls 4 résultats comptent</th><td>Aucun malus pour les mauvais résultats, et tout pilote tire ses 4 meilleurs parmi tous ceux qu’il a courus</td><td>Les 300 premiers hommes ont tous exactement 4 résultats comptants. Dans ce top 300, les pilotes ayant couru 9 épreuves ou plus en 24 mois sont classés 168 places mieux par la CIVL que par l’Elo (médiane), contre 44 places pour ceux qui en ont couru 1 à 3</td></tr>
       <tr><th scope="row">Un résultat vieillit en falaise</th><td>T<sub>d</sub> vaut 99 % à 6 mois, 91 % à 1 an, 50 % à 18 mois, 9 % à 2 ans</td><td>La fenêtre est de 3 ans sur le papier, d’environ 18 mois en pratique</td></tr>
       <tr><th scope="row">Une mise à jour mensuelle</th><td>Le classement est figé entre deux publications</td><td>Une proposition bulgare pour 2026 (BUL 1) veut passer à une mise à jour hebdomadaire : les mensuelles peuvent rater des épreuves enchaînées</td></tr>
@@ -83,18 +83,18 @@
   </ul>
 
   <h2>Le test : qui prédit le mieux ?</h2>
-  <p>Sur 460 compétitions courues entre décembre 2023 et septembre 2026, le classement par l’Elo prédit mieux l’ordre d’arrivée que le classement CIVL du mois : 76,1 % des duels bien prédits contre 72,5 %, avec un hasard à 50 %.</p>
+  <p>Sur 458 compétitions courues entre décembre 2023 et septembre 2026, le classement par l’Elo prédit mieux l’ordre d’arrivée que le classement CIVL du mois : 76,1 % des duels bien prédits contre 72,5 %, avec un hasard à 50 %.</p>
   <p>La méthode est la même pour les deux. Pour chaque épreuve, on prend le classement CIVL publié juste avant son départ (au plus 45 jours avant) et le rating Elo juste avant. On examine chaque paire de pilotes : elle est réussie si le mieux noté a fini devant, et compte pour une demi-réussite en cas d’égalité de notes. Un pilote sans point CIVL est noté zéro.</p>
   <div class="scroll"><table class="mini">
     <thead><tr><th scope="col">Duels prédits</th><th scope="col" class="num">Elo</th><th scope="col" class="num">WPRS (CIVL)</th><th scope="col" class="num">Écart</th></tr></thead>
     <tbody>
       <tr><td>Entre pilotes ayant au moins 3 épreuves (1,07 million de duels)</td><td class="num"><b>76,1 %</b></td><td class="num">72,5 %</td><td class="num">+3,6 points</td></tr>
       <tr><td>Tous les duels</td><td class="num"><b>74,8 %</b></td><td class="num">72,3 %</td><td class="num">+2,5 points</td></tr>
-      <tr><td>Entre les 30 meilleurs de l’épreuve (au moins 10 épreuves chacun)</td><td class="num"><b>67,5 %</b></td><td class="num">65,1 %</td><td class="num">+2,4 points</td></tr>
+      <tr><td>Entre les 30 meilleurs de l’épreuve (au moins 10 épreuves chacun)</td><td class="num"><b>67,4 %</b></td><td class="num">65,0 %</td><td class="num">+2,4 points</td></tr>
     </tbody>
   </table></div>
-  <p>L’Elo gagne dans 369 épreuves sur 460, soit 80 % d’entre elles. L’écart est plus faible chez les meilleurs : à ce niveau tout le monde se ressemble et l’ordre d’arrivée est très aléatoire pour les deux classements.</p>
-  <p>Deux réserves honnêtes. D’abord, le WPRS n’a pas été conçu pour prédire : il sert aussi à qualifier, à récompenser la présence et à stabiliser les listes de départ. Ensuite, les réglages de l’Elo ont été choisis sur l’ensemble des données, y compris ces 460 épreuves ; son résultat est donc un peu optimiste. Il ne compte que quelques paramètres et sa précision sur toute l’histoire (74,9 %) reste proche de celle mesurée ici, mais nous n’avons pas fait de test sur des données mises de côté pour cette comparaison.</p>
+  <p>L’Elo gagne dans 365 épreuves sur 458, soit 80 % d’entre elles. L’écart ne vient pas des pilotes sans points : entre pilotes qui ont tous deux des points WPRS (et au moins 3 épreuves), on trouve encore 76,1 % contre 72,5 %. L’écart est plus faible chez les meilleurs : à ce niveau tout le monde se ressemble et l’ordre d’arrivée est très aléatoire pour les deux classements.</p>
+  <p>Deux réserves honnêtes. D’abord, le WPRS n’a pas été conçu pour prédire : il sert aussi à qualifier, à récompenser la présence et à stabiliser les listes de départ. Ensuite, les réglages de l’Elo ont été choisis sur l’ensemble des données, y compris ces 458 épreuves ; son résultat est donc un peu optimiste. Il ne compte que quelques paramètres et sa précision sur toute l’histoire (74,9 %) reste proche de celle mesurée ici, mais nous n’avons pas fait de test sur des données mises de côté pour cette comparaison.</p>
 
   <h2>Cas concrets</h2>
   <p>Les deux classements divergent surtout pour les pilotes dont quatre bons résultats récents masquent le reste, ou dont le seul résultat récent est mal pris en compte. Rangs au 1<sup>er</sup> octobre 2026 : CIVL = classement WPRS général (hommes et femmes) ; Elo = rang parmi les pilotes actifs.</p>
@@ -137,12 +137,13 @@
   </ul>
 
   <h2>Conclusion : un complément, pas un remplacement</h2>
-  <p>Le WPRS reste utile pour ce pour quoi il est conçu : qualifier, récompenser la présence, simplifier les listes de départ. Mais comme mesure du niveau actuel, il perd face à un algorithme très simple, qui ne connaît que l’ordre d’arrivée : 76,1 % de duels bien prédits contre 72,5 % sur 460 épreuves, et un avantage dans 4 épreuves sur 5.</p>
+  <p>Le WPRS reste utile pour ce pour quoi il est conçu : qualifier, récompenser la présence, simplifier les listes de départ. Mais comme mesure du niveau actuel, il perd face à un algorithme très simple, qui ne connaît que l’ordre d’arrivée : 76,1 % de duels bien prédits contre 72,5 % sur 458 épreuves, et un avantage dans 4 épreuves sur 5.</p>
   <p>Ce gain vient des biais qu’on corrige en changeant de méthode (météo, plateau, quatre résultats, vieillissement), pas d’une sophistication particulière. Il reste des défauts propres au modèle, comme l’absence de mesure de confiance pour les pilotes qui ont peu couru, et la voie la plus prometteuse pour les traiter est d’afficher une incertitude à côté du rating. C’est ce que fait désormais ce site : le ± affiché à côté de chaque rating est expliqué sur la page <a href="{{ root }}method.html">Méthode</a>.</p>
   <p>Le classement construit ici a un avantage : on peut le faire mentir. Si un pilote, un organisateur ou la CIVL trouve un cas où il se trompe, la comparaison est la même qu’on vient de faire : qui prédit le mieux l’épreuve suivante ?</p>
 
   <h2>Un projet ouvert, des tests reproductibles</h2>
   <p>Ce projet est open source. Le code du classement, la base de résultats et la mesure de précision sont publiés sur <a href="https://github.com/julien66/wr">GitHub</a> sous licence libre AGPL-3.0. Chacun peut reconstruire tout le classement à partir des résultats de la CIVL avec une seule commande, retrouver la précision de l’Elo sur toute l’histoire (74,9 % des duels bien prédits) et tester ses propres réglages avec la même mesure.</p>
   <p class="formula cmd">python build_db.py --db data/civl_data.db --out ranking.db</p>
-  <p>La comparaison avec le WPRS demande en plus les classements CIVL mensuels, qui ne sont pas encore dans le dépôt : ce test-là ne peut donc pas encore être refait à l’identique à partir du code publié.</p>
+  <p>La comparaison avec le WPRS se refait aussi : les 36 classements CIVL mensuels utilisés (novembre 2023 à octobre 2026, téléchargés sur civlcomps.org) sont dans le dépôt, avec le script qui les récupère et celui qui mesure les duels bien prédits par les deux classements, épreuve par épreuve.</p>
+  <p class="formula cmd">python tools/compare_wprs.py --since 2023-12 --until 2026-09</p>
 </article>

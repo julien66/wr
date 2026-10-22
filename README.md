@@ -112,7 +112,7 @@ python tools/compare_wprs.py --since 2023-12 --until 2026-09 --csv comparaison.c
 ```
 
 Le téléchargement fait une demande à la fois et attend 20 s entre deux mois pour ménager le site.
-Pour chaque épreuve, la comparaison prend le dernier classement publié au plus tard le jour du début de l'épreuve,
+Pour chaque épreuve, la comparaison prend le dernier classement publié au plus tard le jour du début de l'épreuve (au plus 45 jours avant),
 et le rating Elo juste avant l'épreuve ; un pilote absent du WPRS a 0 point. Résultat (458 épreuves, décembre 2023 à septembre 2026) :
 
 | Duels | Elo | WPRS | Écart | Duels comptés | Épreuves où l'Elo fait mieux |
@@ -120,6 +120,7 @@ et le rating Elo juste avant l'épreuve ; un pilote absent du WPRS a 0 point. R�
 | Pilotes ≥ 3 épreuves | 76,1 % | 72,5 % | +3,6 pt | 1 067 485 | 365 / 458 |
 | Tous | 74,8 % | 72,3 % | +2,5 pt | 1 490 006 | 321 / 458 |
 | Classés WPRS et ≥ 3 épreuves | 76,1 % | 72,5 % | +3,5 pt | 1 040 168 | 360 / 457 |
+| 30 meilleurs de l'épreuve (≥ 10 épreuves) | 67,4 % | 65,0 % | +2,4 pt | 132 862 | 269 / 444 |
 
 La dernière ligne ne garde que les pilotes qui ont des points WPRS : l'écart ne vient pas des pilotes non classés.
 En moyenne, 13,6 % des pilotes d'une épreuve n'ont aucun point WPRS.

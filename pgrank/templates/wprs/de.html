@@ -30,7 +30,7 @@
       <tr><th scope="row">Das Wetter bestimmt den Wert</th><td>Ein Wettkampf mit 1 Task zählt 0,5; mit 3 Tasks 1,0</td><td>10 % der Wettkämpfe haben nur 1 Task. Bei Wettkämpfen mit 60 Piloten oder mehr erzielt der Sieger im Median 28 Punkte bei 1 Task (20 Wettkämpfe), 44 bei 2 Tasks (74) und 62 bei 3 Tasks oder mehr (381)</td></tr>
       <tr><th scope="row">Eine flache Spitze</th><td>Die Platzierung wird mit einem Exponenten nahe 1 potenziert: fast linear</td><td>Median über 475 Wettkämpfe mit 60 Piloten oder mehr: Der 2. erzielt 98,5 % der Punkte des Siegers, der 5. 94 %, der 10. 87 %, der 25. 67 %</td></tr>
       <tr><th scope="row">Das Feld zählt mehr als das Ergebnis</th><td>P<sub>q</sub> und P<sub>n</sub> multiplizieren alles: Derselbe Platz ist je nach Wettkampf mehr oder weniger wert</td><td>P<sub>q</sub> im Median 0,43, von 0,26 (5 % der Wettkämpfe) bis 0,77 (95 %). P<sub>n</sub> erreicht seine Obergrenze von 1,2 in 39 % der Wettkämpfe</td></tr>
-      <tr><th scope="row">Ein Zirkelschluss</th><td>P<sub>q</sub> wird aus den WPRS-Punkten der Angemeldeten berechnet: Wer heute gut platziert ist, macht den Wettkampf morgen wertvoller</td><td>13,5 % der Piloten eines Wettkampfs haben keine WPRS-Punkte (Durchschnitt über 460 Wettkämpfe): Sie zählen bei der Berechnung der Feldqualität null</td></tr>
+      <tr><th scope="row">Ein Zirkelschluss</th><td>P<sub>q</sub> wird aus den WPRS-Punkten der Angemeldeten berechnet: Wer heute gut platziert ist, macht den Wettkampf morgen wertvoller</td><td>13,6 % der Piloten eines Wettkampfs haben keine WPRS-Punkte (Durchschnitt über 458 Wettkämpfe): Sie zählen bei der Berechnung der Feldqualität null</td></tr>
       <tr><th scope="row">Nur 4 Ergebnisse zählen</th><td>Keine Strafe für schlechte Ergebnisse, und jeder Pilot wählt seine 4 besten aus allen geflogenen Wettkämpfen</td><td>Die 300 besten Männer haben alle genau 4 zählende Ergebnisse. In diesen Top 300 werden Piloten mit 9 oder mehr Wettkämpfen in 24 Monaten von der CIVL im Median 168 Plätze besser eingestuft als vom Elo, gegenüber 44 Plätzen bei denen mit 1 bis 3</td></tr>
       <tr><th scope="row">Ergebnisse altern wie an einer Klippe</th><td>T<sub>d</sub> beträgt 99 % nach 6 Monaten, 91 % nach 1 Jahr, 50 % nach 18 Monaten, 9 % nach 2 Jahren</td><td>Das Fenster beträgt auf dem Papier 3 Jahre, in der Praxis etwa 18 Monate</td></tr>
       <tr><th scope="row">Eine monatliche Aktualisierung</th><td>Die Rangliste ist zwischen zwei Veröffentlichungen eingefroren</td><td>Ein bulgarischer Vorschlag für 2026 (BUL 1) will eine wöchentliche Aktualisierung: Monatliche Ranglisten können aufeinanderfolgende Wettkämpfe verpassen</td></tr>
@@ -83,18 +83,18 @@
   </ul>
 
   <h2>Der Test: Wer sagt besser voraus?</h2>
-  <p>Bei 460 Wettkämpfen zwischen Dezember 2023 und September 2026 sagt die Elo-Rangliste die Zielreihenfolge besser voraus als die CIVL-Rangliste des Monats: 76,1 % richtig vorhergesagte Duelle gegenüber 72,5 %, bei einem Zufallswert von 50 %.</p>
+  <p>Bei 458 Wettkämpfen zwischen Dezember 2023 und September 2026 sagt die Elo-Rangliste die Zielreihenfolge besser voraus als die CIVL-Rangliste des Monats: 76,1 % richtig vorhergesagte Duelle gegenüber 72,5 %, bei einem Zufallswert von 50 %.</p>
   <p>Die Methode ist für beide gleich. Für jeden Wettkampf nehmen wir die CIVL-Rangliste, die kurz vor seinem Beginn veröffentlicht wurde (höchstens 45 Tage vorher), und das Elo-Rating unmittelbar davor. Wir prüfen jedes Pilotenpaar: Es gilt als Treffer, wenn der besser Bewertete vorne lag, und als halber Treffer bei gleicher Bewertung. Ein Pilot ohne CIVL-Punkte wird mit null bewertet.</p>
   <div class="scroll"><table class="mini">
     <thead><tr><th scope="col">Vorhergesagte Duelle</th><th scope="col" class="num">Elo</th><th scope="col" class="num">WPRS (CIVL)</th><th scope="col" class="num">Abstand</th></tr></thead>
     <tbody>
       <tr><td>Zwischen Piloten mit mindestens 3 Wettkämpfen (1,07 Millionen Duelle)</td><td class="num"><b>76,1 %</b></td><td class="num">72,5 %</td><td class="num">+3,6 Punkte</td></tr>
       <tr><td>Alle Duelle</td><td class="num"><b>74,8 %</b></td><td class="num">72,3 %</td><td class="num">+2,5 Punkte</td></tr>
-      <tr><td>Unter den 30 Besten des Wettkampfs (jeweils mindestens 10 Wettkämpfe)</td><td class="num"><b>67,5 %</b></td><td class="num">65,1 %</td><td class="num">+2,4 Punkte</td></tr>
+      <tr><td>Unter den 30 Besten des Wettkampfs (jeweils mindestens 10 Wettkämpfe)</td><td class="num"><b>67,4 %</b></td><td class="num">65,0 %</td><td class="num">+2,4 Punkte</td></tr>
     </tbody>
   </table></div>
-  <p>Das Elo gewinnt in 369 von 460 Wettkämpfen, also in 80 % davon. Der Abstand ist bei den Besten kleiner: Auf diesem Niveau ähneln sich alle, und die Zielreihenfolge ist für beide Ranglisten sehr zufällig.</p>
-  <p>Zwei ehrliche Einschränkungen. Erstens wurde der WPRS nicht zur Vorhersage entworfen: Er dient auch der Qualifikation, der Belohnung von Teilnahme und der Stabilisierung von Startlisten. Zweitens wurden die Elo-Einstellungen auf allen Daten gewählt, einschließlich dieser 460 Wettkämpfe; sein Ergebnis ist daher etwas zu optimistisch. Es hat nur wenige Parameter, und seine Genauigkeit über die gesamte Geschichte (74,9 %) liegt nahe an der hier gemessenen, aber für diesen Vergleich haben wir keinen Test auf zurückgehaltenen Daten durchgeführt.</p>
+  <p>Das Elo gewinnt in 365 von 458 Wettkämpfen, also in 80 % davon. Der Abstand liegt nicht an Piloten ohne Punkte: Zwischen Piloten, die beide WPRS-Punkte (und mindestens 3 Wettkämpfe) haben, sind es weiterhin 76,1 % gegenüber 72,5 %. Der Abstand ist bei den Besten kleiner: Auf diesem Niveau ähneln sich alle, und die Zielreihenfolge ist für beide Ranglisten sehr zufällig.</p>
+  <p>Zwei ehrliche Einschränkungen. Erstens wurde der WPRS nicht zur Vorhersage entworfen: Er dient auch der Qualifikation, der Belohnung von Teilnahme und der Stabilisierung von Startlisten. Zweitens wurden die Elo-Einstellungen auf allen Daten gewählt, einschließlich dieser 458 Wettkämpfe; sein Ergebnis ist daher etwas zu optimistisch. Es hat nur wenige Parameter, und seine Genauigkeit über die gesamte Geschichte (74,9 %) liegt nahe an der hier gemessenen, aber für diesen Vergleich haben wir keinen Test auf zurückgehaltenen Daten durchgeführt.</p>
 
   <h2>Konkrete Fälle</h2>
   <p>Die beiden Ranglisten weichen vor allem bei Piloten voneinander ab, deren vier gute jüngste Ergebnisse den Rest verdecken oder deren einziges jüngstes Ergebnis schlecht berücksichtigt wird. Ränge zum 1. Oktober 2026: CIVL = WPRS-Gesamtrangliste (Männer und Frauen); Elo = Rang unter den aktiven Piloten.</p>
@@ -137,12 +137,13 @@
   </ul>
 
   <h2>Fazit: eine Ergänzung, kein Ersatz</h2>
-  <p>Der WPRS bleibt nützlich für das, wofür er entworfen wurde: qualifizieren, Teilnahme belohnen, Startlisten vereinfachen. Doch als Maß für das aktuelle Niveau unterliegt er einem sehr einfachen Algorithmus, der nur die Zielreihenfolge kennt: 76,1 % richtig vorhergesagte Duelle gegenüber 72,5 % bei 460 Wettkämpfen und ein Vorteil in 4 von 5 Wettkämpfen.</p>
+  <p>Der WPRS bleibt nützlich für das, wofür er entworfen wurde: qualifizieren, Teilnahme belohnen, Startlisten vereinfachen. Doch als Maß für das aktuelle Niveau unterliegt er einem sehr einfachen Algorithmus, der nur die Zielreihenfolge kennt: 76,1 % richtig vorhergesagte Duelle gegenüber 72,5 % bei 458 Wettkämpfen und ein Vorteil in 4 von 5 Wettkämpfen.</p>
   <p>Dieser Gewinn stammt aus den Verzerrungen, die ein Methodenwechsel beseitigt (Wetter, Feld, vier Ergebnisse, Alterung), nicht aus besonderer Raffinesse. Es bleiben modelleigene Schwächen, etwa das fehlende Maß für die Zuverlässigkeit bei Piloten mit wenigen Wettkämpfen, und der vielversprechendste Weg, sie anzugehen, ist, neben dem Rating eine Unsicherheit anzuzeigen. Genau das tut diese Website inzwischen: Das ± neben jedem Rating wird auf der Seite <a href="{{ root }}method.html">Methode</a> erklärt.</p>
   <p>Die hier aufgebaute Rangliste hat einen Vorteil: Man kann sie widerlegen. Findet ein Pilot, ein Veranstalter oder die CIVL einen Fall, in dem sie sich irrt, ist der Vergleich derselbe, den wir gerade angestellt haben: Wer sagt den nächsten Wettkampf besser voraus?</p>
 
   <h2>Ein offenes Projekt, reproduzierbare Tests</h2>
   <p>Dieses Projekt ist Open Source. Der Code der Rangliste, die Ergebnisdatenbank und das Genauigkeitsmaß sind auf <a href="https://github.com/julien66/wr">GitHub</a> unter der freien Lizenz AGPL-3.0 veröffentlicht. Jeder kann die gesamte Rangliste mit einem einzigen Befehl aus den CIVL-Ergebnissen neu berechnen, die Genauigkeit des Elo über die gesamte Geschichte nachprüfen (74,9 % richtig vorhergesagte Duelle) und eigene Einstellungen mit demselben Maß testen.</p>
   <p class="formula cmd">python build_db.py --db data/civl_data.db --out ranking.db</p>
-  <p>Der Vergleich mit dem WPRS benötigt zusätzlich die monatlichen CIVL-Ranglisten, die noch nicht im Repository liegen: Dieser Test lässt sich daher mit dem veröffentlichten Code noch nicht identisch wiederholen.</p>
+  <p>Auch der Vergleich mit dem WPRS lässt sich wiederholen: Die 36 verwendeten monatlichen CIVL-Ranglisten (November 2023 bis Oktober 2026, von civlcomps.org heruntergeladen) liegen im Repository, zusammen mit dem Skript, das sie abruft, und dem, das Wettkampf für Wettkampf die von beiden Ranglisten richtig vorhergesagten Duelle misst.</p>
+  <p class="formula cmd">python tools/compare_wprs.py --since 2023-12 --until 2026-09</p>
 </article>
