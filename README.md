@@ -72,6 +72,12 @@ importe dans `data/civl_data.db` celles qui manquent, réimporte celles dont civ
 (nombre de pilotes différent de celui annoncé) est refusée et reprise au passage suivant. Autres options :
 `--refetch ID…` (réimporter des compétitions), `--no-wprs`, `--no-build`.
 
+**Automatique** : le workflow GitHub `.github/workflows/mise-a-jour.yml` lance `update.py` le 2 de chaque mois à 5 h (UTC)
+et ouvre une PR « Mise à jour des résultats (civlcomps) » avec les nouvelles données ; la fusionner met le site à jour.
+On peut aussi le lancer à la main (onglet Actions → « Mise à jour mensuelle » → *Run workflow*). Il faut autoriser une fois
+*Settings → Actions → General → Allow GitHub Actions to create and approve pull requests*. Si une compétition n'a pas pu
+être importée, la PR est quand même ouverte avec le reste et le workflow finit en échec (relancer plus tard).
+
 Tout est recalculé depuis zéro (déterministe) : une compétition ajoutée avec retard se répercute
 correctement sur les mois suivants. Les compétitions d'un mois apparaissent dans le classement publié le 1er du mois suivant,
 comme pour le WPRS. Le genre des nouveaux pilotes absents de `data/genders.csv` est pris dans les classements WPRS téléchargés.
