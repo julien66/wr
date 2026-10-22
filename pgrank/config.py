@@ -43,9 +43,8 @@ class Config:
     contact_email: str = "j.garcia@ffvl.fr"   # affiché sur la page Mentions légales (droits d'accès, de retrait)
     editor_name: str = "Julien Garcia"              # nom de l'éditeur (mentions légales) ; vide = ligne non affichée
     host_info: str = "Render (render.com), 525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis ; serveurs à Francfort (Allemagne)"                # hébergeur : nom et adresse ; vide = ligne non affichée
-    top_n: int = 300                  # lignes affichées par classement mensuel (mois anciens)
-    full_months: int = 3              # les N derniers mois listent tous les pilotes classés (paginés)
-    page_size: int = 100              # pilotes par page de classement
+    top_n: int = 300                  # engine.run sans base (tests, outils) : pilotes gardés par mois ancien
+    full_months: int = 3              # engine.run sans base : les N derniers mois gardent tous les pilotes
     pilot_min_comps: int = 3          # une page pilote à partir de N compétitions (ou si présent dans un classement affiché)
     site_title: str = "Classement mondial de parapente"
     lang: str = "fr"

@@ -226,7 +226,7 @@ function ordinal(n) {
   w0 = host.clientWidth; draw();
 })();
 
-// Suggestions de pilotes sous la barre de recherche (site dynamique) : flèches + Entrée, Échap pour fermer.
+// Suggestions de pilotes sous la barre de recherche : flèches + Entrée, Échap pour fermer.
 (function () {
   document.querySelectorAll("form.gsearch input[type=search], input[data-pick]").forEach(function (input) {
     var pick = input.dataset.pick && input.form && input.form.elements[input.dataset.pick];
