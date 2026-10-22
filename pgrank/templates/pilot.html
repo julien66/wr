@@ -2,7 +2,7 @@
 {% block main %}
 <section class="hero">
   <p class="crumb"><a href="{{ root }}">{{ _("Classement") }}</a> <a href="{{ root }}compare?a={{ civ }}">{{ _("Comparer avec un autre pilote") }}</a></p>
-  <h1 class="long">{{ name }} <span class="nat big">{{ nation }}</span></h1>
+  <h1 class="long">{{ name }} <span class="nat big" title="{{ nation|country }}">{{ nation }}</span></h1>
   {% if fin %}
   <p class="lede">{{ _n("{n} compétition évaluée, dernière en {last}.", "{n} compétitions évaluées, dernière en {last}.", st.n, last=fin.last|iso_my) }}
     {% if not fin.active %}{% if elo %}{{ _h("<b class=\"offtag\">Inactif</b> depuis plus de {m} mois : niveau conservé, ses prochains résultats pèseront davantage.", m=cfg.inactive_after_months|round|int) }}{% else %}<b class="offtag">Inactif</b> depuis plus de {{ cfg.inactive_after_months|round|int }} mois : niveau conservé, incertitude relevée à la prochaine compétition.{% endif %}{% endif %}</p>

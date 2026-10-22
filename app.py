@@ -22,7 +22,7 @@ import numpy as np
 from flask import Flask, abort, g, jsonify, redirect, render_template, request, url_for
 from jinja2 import ChoiceLoader, FileSystemLoader
 
-from pgrank import render as R
+from pgrank import countries, render as R
 from pgrank.i18n import LANGS, Locale, pick, pub_month
 from pgrank.config import Config
 from pgrank.engine import _month_end
@@ -56,7 +56,7 @@ def create_app(db_path, proxy=False):
     app.jinja_env.filters.update(
         iso_my_k=lambda k: L().key_my(k), f1=lambda x: L().f1(x), f2=lambda x: L().f2(x), fint=lambda x: L().fint(x),
         fdelta=lambda x: L().fdelta(x), date_fr=lambda d: L().date(d), iso_my=lambda i: L().iso_my(i),
-        pct=lambda x: L().pct(x), pct1=lambda x: L().pct1(x))
+        pct=lambda x: L().pct(x), pct1=lambda x: L().pct1(x), country=lambda c: L().country(c))
 
     @app.before_request
     def drop_html_suffix():
@@ -364,11 +364,13 @@ def create_app(db_path, proxy=False):
             prev_m=months[i - 1] if i else None, next_m=months[i + 1] if i + 1 < len(months) else None,
             prefix="/ranking/", qs=qs, sex=sex, actifs=actifs, genre_known=genre_known,
             qs_all=qs_of("", actifs), qs_f=qs_of("F", actifs), qs_toggle=qs_of(sex, not actifs),
-            nat=nat, qs_nonat=qs_of(sex, actifs, ""), nations=nations,
+            nat=nat, qs_nonat=qs_of(sex, actifs, ""),
+            nations=sorted(({"nat": x["nat"], "n": x["n"], "name": g.loc.country(x["nat"])} for x in nations),
+                           key=lambda x: countries.sort_key(x["name"])),
             picker=R.build_picker(months, "/ranking/", key, qs, g.loc),
             pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc),
             pg=page, n_pages=n_pages, first=lo_r, last=lo_r + len(rows) - 1, n_shown=total, n_ranked=n_ranked,
-            comps=comps, title=g.loc.month_label(mrow["year"], mrow["month"]) + (" – " + g.loc.gettext("féminin") if sex else "") + (" – " + nat if nat else "")
+            comps=comps, title=g.loc.month_label(mrow["year"], mrow["month"]) + (" – " + g.loc.gettext("féminin") if sex else "") + (" – " + g.loc.country(nat) if nat else "")
             + (" " + g.loc.gettext("(page {n})", n=page) if page > 1 else ""))
 
     @app.route("/")

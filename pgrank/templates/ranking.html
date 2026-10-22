@@ -23,7 +23,7 @@
     {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}{% if not actifs %}<input type="hidden" name="actifs" value="0">{% endif %}
     <label><span class="sr">{{ _("Pays") }}</span><select name="nation" data-autosubmit>
       <option value="">{{ _("Tous pays") }}</option>
-      {% for x in nations|sort(attribute='nat') %}<option value="{{ x.nat }}"{% if x.nat == nat %} selected{% endif %}>{{ x.nat }} ({{ x.n|fint }})</option>{% endfor %}
+      {% for x in nations %}<option value="{{ x.nat }}"{% if x.nat == nat %} selected{% endif %}>{{ x.name }} ({{ x.n|fint }})</option>{% endfor %}
     </select></label>
     <noscript><button type="submit">{{ _("Aller") }}</button></noscript>
   </form>{% endif %}
@@ -60,7 +60,7 @@ La barre montre le niveau estimé : le point est μ, la partie foncée va du rat
   <tr{% if r.rank_a %} id="r{{ r.rank_a }}"{% else %} class="off"{% endif %}>
     <td class="rk"{% if r.rank_lo %} title="{{ _('Rang probable (± 1 écart type) : {a} à {b}', a=r.rank_lo|fint, b=r.rank_hi|fint) }}"{% endif %}>{% if r.rank_a %}{{ r.rank_a }}{% if nat %}<small class="wr" title="{{ _('Rang mondial') }}">{{ r.wrank }}</small>{% endif %}{% else %}<span class="offrk" title="{{ _('Inactif : hors classement') }}">–</span>{% endif %}</td>
     <td class="mv hide-s{% if r.move %} {{ 'up' if r.move > 0 else 'down' }}{% endif %}">{% if r.move %}{{ '▲' if r.move > 0 else '▼' }}{{ r.move|abs }}{% endif %}</td>
-    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> {% if r.nation %}<a class="nat" href="{{ prefix }}{{ month.key }}{{ qs_nonat }}{{ '&' if qs_nonat else '?' }}nation={{ r.nation }}" title="{{ _('Classement') }} {{ r.nation }}">{{ r.nation }}</a>{% else %}<span class="nat">{{ r.nation }}</span>{% endif %}</td>
+    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> {% if r.nation %}<a class="nat" href="{{ prefix }}{{ month.key }}{{ qs_nonat }}{{ '&' if qs_nonat else '?' }}nation={{ r.nation }}" title="{{ _('Classement') }} – {{ r.nation|country }}">{{ r.nation }}</a>{% else %}<span class="nat">{{ r.nation }}</span>{% endif %}</td>
     <td class="num rt">{{ r.rating|f1 if not elo else r.rating|round|int }}{% if elo and r.sd %}<small class="sd{% if r.sd >= 160 %} hi{% endif %}" title="{{ _('Incertitude : ± 1 écart type') }}">±{{ r.sd|round|int }}</small>{% endif %}</td>
     <td class="bd"><span class="band{% if elo %} sd{% endif %}" style="--a:{{ r.a }};--b:{{ r.b }};--c:{{ r.c }}" title="{% if elo %}{{ _('Rating {r}, plage probable {a} à {b}', r=r.rating|round|int, a=(r.rating - r.sd)|round|int, b=(r.rating + r.sd)|round|int) }}{% else %}μ {{ r.mu|f1 }}, σ {{ r.sigma|f2 }}{% endif %}"></span></td>
     <td class="num hide-s">{{ r.n }}</td>

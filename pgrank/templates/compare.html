@@ -21,8 +21,8 @@
 <table class="board cmp">
   <caption class="sr">{{ _("Comparaison") }}</caption>
   <thead><tr><th scope="col"></th>
-    <th scope="col" class="num ca"><a href="{{ root }}pilot/{{ a.civ }}">{{ a.name }}</a> <span class="nat">{{ a.nation }}</span></th>
-    <th scope="col" class="num cb"><a href="{{ root }}pilot/{{ b.civ }}">{{ b.name }}</a> <span class="nat">{{ b.nation }}</span></th></tr></thead>
+    <th scope="col" class="num ca"><a href="{{ root }}pilot/{{ a.civ }}">{{ a.name }}</a> <span class="nat" title="{{ a.nation|country }}">{{ a.nation }}</span></th>
+    <th scope="col" class="num cb"><a href="{{ root }}pilot/{{ b.civ }}">{{ b.name }}</a> <span class="nat" title="{{ b.nation|country }}">{{ b.nation }}</span></th></tr></thead>
   <tbody>
     <tr><th scope="row">{{ _("Rang mondial") }}</th><td class="num">{{ rk(a) }}</td><td class="num">{{ rk(b) }}</td></tr>
     <tr><th scope="row">{{ _("Niveau Elo") }}</th>
