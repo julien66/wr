@@ -104,7 +104,6 @@ h2 { font-weight: 700; font-stretch: 80%; font-size: 1.35rem; margin: 40px 0 10p
 .last em { font-style: normal; margin-left: 4px; font-size: 12px; }
 tr.off td { color: var(--off); }
 tr.off .nm { font-weight: 500; } tr.off .rt, tr.off .rk { color: var(--off); }
-.hide-off tr.off { display: none; }
 
 /* ---------- la barre de niveau estimé ---------- */
 .bd { width: 34%; min-width: 150px; }

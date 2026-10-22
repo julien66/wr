@@ -1,2 +1,2 @@
--r requirements.txt
-openskill>=6.1.1,<7   # seulement pour --engine openskill (Python >= 3.10)
+numpy>=1.26
+openskill>=6.1.1,<7   # seulement pour le moteur OpenSkill (tests ; Python >= 3.10)

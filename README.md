@@ -1,6 +1,6 @@
 # Classement mondial de parapente (Elo)
 
-Génère un site statique à partir de la base SQLite des résultats CIVL :
+Site web (Flask) calculé à partir de la base SQLite des résultats CIVL :
 
 - un **classement par mois** (état des niveaux à la fin de chaque mois) ;
 - une **page par compétition** qui montre, pilote par pilote, le calcul : rang réel, rang attendu, niveau avant et après, écart ;
@@ -29,7 +29,7 @@ Choix des réglages (K, boost) sur les mêmes données — part des duels bien p
 L'échelle (640, soit 400 × 1,6 avec K = 64 × 1,6 : mêmes classements qu'en (400, 64) mais étirés pour que les meilleurs approchent 2800) est une simple unité : (échelle 300, K 48) donne exactement le même classement que (400, 64) ; seul le rapport K / échelle compte. La resserrer ne rend donc pas les favoris plus « sûrs » à elle seule ; avec K/échelle plus grand, le rang attendu de Lambert à Gemona passe de 22 à 19–20 sans gain de prévision (74,3 → 74,4 %).
 Les pages de compétition montrent, par pilote, la part de duels gagnés et la part attendue (rang attendu au survol).
 
-Options : `python build.py ... --k 48 --boost 2`. L'ancien moteur reste disponible : `--engine openskill` (nécessite `pip install "openskill>=6.1.1"`, Python ≥ 3.10).
+L'ancien moteur OpenSkill reste dans `pgrank/engine.py` (`Config(engine="openskill")`, utilisé par les tests ; nécessite `pip install "openskill>=6.1.1"`, Python ≥ 3.10).
 
 ## Incertitude (± affiché à côté du rating)
 
@@ -47,13 +47,12 @@ Le plancher de ±115 vient du K élevé (102) : même un vétéran bouge beaucou
 ## Utilisation
 
 ```bash
-pip install -r requirements.txt      # (requirements-openskill.txt pour --engine openskill)
-python build.py --db civl_data.db --out site      # ~30 s pour 1 900 compétitions
+pip install -r requirements-dyn.txt
+python build_db.py --db data/civl_data.db --out ranking.db   # calcule et écrit la base (~1 min, ~500 Mo)
+python app.py --db ranking.db                                 # http://127.0.0.1:5000
 ```
 
-Ouvrez `site/index.html`, ou publiez le dossier `site/` sur n'importe quel hébergement statique.
-
-**Mise à jour mensuelle** : mettez à jour `civl_data.db` (votre collecte), relancez `build.py`, publiez `site/`.
+**Mise à jour mensuelle** : mettez à jour `data/civl_data.db` (votre collecte), relancez `build_db.py`, puis redémarrez le serveur.
 Tout est recalculé depuis zéro (déterministe) : une compétition ajoutée avec retard se répercute
 correctement sur les mois suivants.
 
@@ -66,7 +65,7 @@ correctement sur les mois suivants.
 - **Nettoyage des données** (`pgrank/load.py`) : dates `Apr 01, 2010`, libellé « Sport » collé aux noms
   (10 604 lignes), lignes sans `civlid` (7) ignorées. Les pilotes sont identifiés par `civlid`.
 
-Réglages dans `pgrank/config.py` ; options de `build.py` : `--model`, `--window`, `--tau`, `--z`, `--top-n`, `--inactive-months`, `--min-field`.
+Réglages dans `pgrank/config.py` ; options de `build_db.py` : `python build_db.py --help`.
 
 ## Pourquoi BradleyTerryPart et non PlackettLuce par défaut
 
@@ -90,7 +89,7 @@ Autres modèles OpenSkill essayés avec le même moteur (`--model`), sur les mê
 
 Les variantes `Full` sont à écarter (elles divergent sur de grands plateaux). `BradleyTerryPart` prédit aussi
 bien, mieux entre élites, rend σ significatif (donc l'inactivité utile) et ne récompense plus le volume de
-compétitions : c'est le défaut. Pour retrouver l'ancien classement : `python build.py ... --model PlackettLuce`.
+compétitions : c'est le défaut.
 
 ## Contrôles
 
@@ -127,8 +126,8 @@ En moyenne, 13,6 % des pilotes d'une épreuve n'ont aucun point WPRS.
 
 ## Exports
 
-`site/exports/calculs_par_competition.csv` (chaque calcul : μ, σ avant et après, rang attendu...) et
-`site/exports/classement_mensuel.csv`.
+`/exports/classement_<mois>.csv` (classement d'un mois, `?sex=F` pour le classement féminin) et
+`/exports/competition_<id>.csv` (calcul d'une compétition : niveau avant et après, duels gagnés et attendus, rang attendu).
 
 ## Réglages retenus : fenêtre 10 et rating = μ − 2σ
 
@@ -143,7 +142,6 @@ Testés sur les mêmes données (BradleyTerryPart) :
 
 La fenêtre agit sur la prévision (μ) ; z agit seulement sur l'affichage : plus z est grand, plus la baisse de σ
 (qui vient avec chaque compétition courue) pèse dans le rating, donc plus le volume est récompensé.
-`--window 4 --tau 0.0833 --z 3` redonne le classement par défaut d'OpenSkill.
 
 ## Pourquoi tau = 0,5 : les vétérans doivent rester réactifs
 
@@ -153,33 +151,25 @@ ne perdait que 0,06 et 0,13 de μ. Avec τ = 0,5, σ se stabilise vers 3,8, il p
 mondial après ses résultats récents. La prévision reste la même (duels bien prédits : 71,4 % → 71,4 %, entre les
 30 meilleurs : 66,6 % → 66,7 %), donc ce réglage change la réactivité sans dégrader le modèle.
 
-## Site dynamique (base SQLite + serveur)
+## Adresses et fonctions du site
 
-Le site statique (`build.py`) reste disponible. Pour interroger n'importe quel classement (« le 600ᵉ en 2007 »), chercher un pilote
-absent de la page, ou filtrer les femmes, il y a une version dynamique :
-
-    pip install flask
-    python build_db.py --db civl_data.db --out ranking.db     # calcule et écrit la base (~1 min, ~400 Mo)
-    python app.py --db ranking.db                              # http://127.0.0.1:5000
-
+- Pages sans extension : `/pilot/40219`, `/competition/123`, `/competitions`, `/method`, `/wprs`, `/legal`, `/compare`.
 - Classement d'un mois, paginé par 100 : `/ranking/2007-12`, `/ranking/2007-12-p6` (les anciennes adresses en `.html` redirigent en 301 vers ces adresses).
 - Saut direct à un rang : `/ranking/2007-12?rank=600` (formulaire « Aller au rang » sur chaque page). `/ranking/2007` ouvre le dernier mois de l'année.
 - Recherche sur tous les pilotes et toutes les compétitions (sans accents) : `/search?q=garcia`.
 - Femmes : onglet « Féminin » (`?sex=F`) sur les classements. Le genre vient de `data/genders.csv` (`civlid,gender`), extrait de la liste CIVL ;
   `build_db.py --genders` accepte aussi directement un .xlsx de la liste CIVL. Les pilotes dont le genre n'est pas connu n'apparaissent pas dans l'onglet. Pour en ajouter, écrire une ligne `civlid,F` (ou `M`) dans `data/genders_manual.csv`, qui est prioritaire, puis relancer `build_db.py`.
   Le niveau Elo est celui du classement général : le rang « féminin » est le rang de la pilote parmi les pilotes féminines.
-- Après chaque ajout de compétitions : relancer `build_db.py`, puis redémarrer `app.py`.
 
 ## Langues
 
-Le site dynamique choisit la langue du navigateur (en-tête `Accept-Language`) et la mémorise dans un cookie ; les liens « Français / English / Deutsch / Español » en pied de page
+Le site choisit la langue du navigateur (en-tête `Accept-Language`) et la mémorise dans un cookie ; les liens « Français / English / Deutsch / Español » en pied de page
 (`?lang=en`) la changent à la main. Langues disponibles : français (texte source), anglais, allemand et espagnol. Quand la langue du navigateur n'est pas disponible, c'est l'anglais.
 
 - Les textes sont les textes français écrits dans les gabarits : `_("…")` pour un texte simple, `_h("…")` pour un texte avec HTML, `_n("singulier", "pluriel", n)`.
   Les traductions sont dans `pgrank/i18n/<langue>.json` (clé = texte français). Une clé absente retombe sur le français.
 - Les textes du JavaScript sont les clés `js.*` du même fichier. Les formats de nombres et de dates dépendent de la langue (`pgrank/i18n.py`).
 - Ajouter une langue : copier `pgrank/i18n/en.json` en `<code>.json`, le traduire, puis ajouter le code dans `LANGS` (`pgrank/i18n.py`).
-- Le site statique (`build.py`) reste en français ; la page Méthode n'est traduite que pour le moteur Elo.
 
 ## Mise en ligne
 

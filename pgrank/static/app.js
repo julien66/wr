@@ -23,13 +23,8 @@ function ordinal(n) {
   return fmtInt(n) + suf;
 }
 
-// Filtre de recherche et masquage des inactifs. Tout fonctionne sans JavaScript (le tableau complet reste lisible).
+// Filtre de recherche dans un tableau. Tout fonctionne sans JavaScript (le tableau complet reste lisible).
 (function () {
-  var store = {
-    get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
-    set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
-  };
-
   document.querySelectorAll("[data-filter]").forEach(function (input) {
     var rows = null;
     input.addEventListener("input", function () {
@@ -40,15 +35,6 @@ function ordinal(n) {
       });
     });
   });
-
-  var toggle = document.getElementById("hide-off");
-  var board = document.getElementById("board");
-  if (toggle && board) {
-    var apply = function () { board.classList.toggle("hide-off", toggle.checked); };
-    toggle.checked = store.get("hideOff") === "1";
-    apply();
-    toggle.addEventListener("change", function () { store.set("hideOff", toggle.checked ? "1" : "0"); apply(); });
-  }
 
   // graphiques plus larges que l'écran (mobile) : on montre d'abord la partie la plus récente
   document.querySelectorAll(".chartscroll").forEach(function (el) { el.scrollLeft = el.scrollWidth; });
