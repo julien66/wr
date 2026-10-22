@@ -59,6 +59,18 @@ def create_app(db_path, proxy=False):
         pct=lambda x: L().pct(x), pct1=lambda x: L().pct1(x))
 
     @app.before_request
+    def drop_html_suffix():
+        """Anciennes adresses en .html (liens déjà partagés) : redirection permanente vers l'adresse sans extension."""
+        path = request.path
+        if path.endswith(".html") and not path.startswith("/static/"):
+            new = path[:-len(".html")]
+            if new in ("/index", ""):
+                new = "/"
+            qs = request.query_string.decode("utf-8", "replace")
+            return redirect(new + ("?" + qs if qs else ""), code=301)
+        return None
+
+    @app.before_request
     def set_language():
         """Langue : ?lang=xx (mémorisée dans un cookie), sinon cookie, sinon préférence du navigateur."""
         want = request.args.get("lang")
@@ -141,7 +153,7 @@ def create_app(db_path, proxy=False):
             leaders_cache["d"] = d
         return leaders_cache["d"]
 
-    @app.route("/leaders.html")
+    @app.route("/leaders")
     def leaders():
         if not SHOW_LEADERS:
             abort(404)
@@ -185,23 +197,23 @@ def create_app(db_path, proxy=False):
     @app.route("/robots.txt")
     def robots():
         base = request.url_root.rstrip("/")
-        txt = f"User-agent: *\nDisallow: /api/\nDisallow: /search\nDisallow: /exports/\nDisallow: /compare.html\nDisallow: /*?lang=\n\nSitemap: {base}/sitemap.xml\n"
+        txt = f"User-agent: *\nDisallow: /api/\nDisallow: /search\nDisallow: /exports/\nDisallow: /compare\nDisallow: /*?lang=\n\nSitemap: {base}/sitemap.xml\n"
         return app.response_class(txt, mimetype="text/plain")
 
     @app.route("/sitemap.xml")
     def sitemap():
         base = request.url_root.rstrip("/")
-        urls = [f"{base}/", f"{base}/competitions.html", f"{base}/method.html", f"{base}/wprs.html", f"{base}/legal.html"]
+        urls = [f"{base}/", f"{base}/competitions", f"{base}/method", f"{base}/wprs", f"{base}/legal"]
         if SHOW_LEADERS:
-            urls.append(f"{base}/leaders.html")
-        urls += [f"{base}/ranking/{k}.html" for k in mkeys]
-        urls += [f"{base}/competition/{r[0]}.html" for r in db().execute("SELECT id FROM competitions")]
+            urls.append(f"{base}/leaders")
+        urls += [f"{base}/ranking/{k}" for k in mkeys]
+        urls += [f"{base}/competition/{r[0]}" for r in db().execute("SELECT id FROM competitions")]
         body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
         return app.response_class(
             '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + body + "</urlset>",
             mimetype="application/xml")
 
-    @app.route("/legal.html")
+    @app.route("/legal")
     def legal():
         return render_template("legal.html", **common, page="legal", title=g.loc.gettext("Mentions légales et données personnelles"), qs="")
 
@@ -240,7 +252,8 @@ def create_app(db_path, proxy=False):
                  pilot_min_comps=meta["pilot_min_comps"], elo_params=meta["full_cfg"]["elo_params"])
     params = meta["params"]
     mkeys = [m.key for m in months]
-    app.jinja_env.globals.update(elo=True, cfg=cfg, dyn=True, comp_kind=R.comp_kind)
+    app.jinja_env.globals.update(elo=True, cfg=cfg, dyn=True, comp_kind=R.comp_kind,
+                                 ext="", home="")    # adresses sans extension : /pilot/40219, /ranking/2026-10
     common = dict(pages=AllPages(removed), site_title=cfg.site_title, latest_key=mkeys[-1],
                   last_result=dt.date.fromisoformat(meta["last_result"]),
                   build_date=dt.date.fromisoformat(meta["build_date"]), params=params, root="/")
@@ -315,7 +328,7 @@ def create_app(db_path, proxy=False):
             hit = db().execute(f"SELECT pos FROM ({base}) WHERE nr=?", (*args, want)).fetchone()
             if hit:
                 p = (hit["pos"] - 1) // PAGE_SIZE + 1
-                name = f"/ranking/{key}.html" if p == 1 else f"/ranking/{key}-p{p}.html"
+                name = f"/ranking/{key}" if p == 1 else f"/ranking/{key}-p{p}"
                 return redirect(f"{name}{qs_of(sex, actifs)}#r{want}")
         if page > n_pages:
             abort(404)
@@ -348,34 +361,34 @@ def create_app(db_path, proxy=False):
             prefix="/ranking/", qs=qs, sex=sex, actifs=actifs, genre_known=genre_known,
             qs_all=qs_of("", actifs), qs_f=qs_of("F", actifs), qs_toggle=qs_of(sex, not actifs),
             nat=nat, qs_nonat=qs_of(sex, actifs, ""), nations=nations,
-            picker=R.build_picker(months, "/ranking/", key, qs, g.loc),
-            pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc),
+            picker=R.build_picker(months, "/ranking/", key, qs, g.loc, ext=""),
+            pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc, ext=""),
             pg=page, n_pages=n_pages, first=lo_r, last=lo_r + len(rows) - 1, n_shown=total, n_ranked=n_ranked,
             comps=comps, title=g.loc.month_label(mrow["year"], mrow["month"]) + (" – " + g.loc.gettext("féminin") if sex else "") + (" – " + nat if nat else "")
             + (" " + g.loc.gettext("(page {n})", n=page) if page > 1 else ""))
 
     @app.route("/")
-    @app.route("/index.html")
     def index():
         return ranking(mkeys[-1], 1, sex_arg())
 
-    @app.route("/ranking/<key>.html")
-    def ranking_page1(key):
-        return ranking(key, 1, sex_arg())
-
-    @app.route("/ranking/<key>-p<int:page>.html")
-    def ranking_page(key, page):
-        return ranking(key, page, sex_arg())
-
-    @app.route("/ranking/<int:year>")
-    def ranking_year(year):
-        ks = [m.key for m in months if pub_month(m.year, m.month)[0] == year]   # année de publication
-        if not ks:
-            abort(404)
-        return redirect(f"/ranking/{ks[-1]}.html{qs_of(sex_arg(), actifs_arg())}")
+    @app.route("/ranking/<name>")
+    def ranking_page(name):
+        """/ranking/2007-12 (page 1), /ranking/2007-12-p6 (page 6), /ranking/2007 (dernier mois publié cette année-là)."""
+        m = re.fullmatch(r"(\d{4}-\d{2})(?:-p(\d+))?", name)
+        if m:
+            page = int(m.group(2) or 1)
+            if page < 1:
+                abort(404)
+            return ranking(m.group(1), page, sex_arg())
+        if re.fullmatch(r"\d{4}", name):
+            year = int(name)
+            ks = [m.key for m in months if pub_month(m.year, m.month)[0] == year]   # année de publication
+            if ks:
+                return redirect(f"/ranking/{ks[-1]}{qs_of(sex_arg(), actifs_arg())}")
+        abort(404)
 
     # ---------------------------------------------------------------- compétition
-    @app.route("/competition/<int:cid>.html")
+    @app.route("/competition/<int:cid>")
     def competition(cid):
         c = db().execute("SELECT * FROM competitions WHERE id=?", (cid,)).fetchone()
         if c is None:
@@ -404,7 +417,7 @@ def create_app(db_path, proxy=False):
                                month_key=f"{end.year:04d}-{end.month:02d}", pub_date_k=g.loc.pub_date(end.year, end.month),
                                title=c["name"], qs="")
 
-    @app.route("/competitions.html")
+    @app.route("/competitions")
     def competitions():
         by_year = defaultdict(list)
         for c in db().execute("SELECT * FROM competitions ORDER BY end DESC, id DESC"):
@@ -417,7 +430,7 @@ def create_app(db_path, proxy=False):
                                years=sorted(by_year.items(), reverse=True), n_comps=n, title=g.loc.gettext("Compétitions"), qs="")
 
     # ---------------------------------------------------------------- pilote
-    @app.route("/pilot/<civ>.html")
+    @app.route("/pilot/<civ>")
     def pilot(civ):
         p = db().execute("SELECT * FROM pilots WHERE civlid=?", (civ,)).fetchone()
         if p is None or civ in removed:
@@ -615,14 +628,14 @@ def create_app(db_path, proxy=False):
         out.append("</svg>")
         return "".join(out)
 
-    @app.route("/compare.html")
+    @app.route("/compare")
     def compare():
         ca = resolve_pilot(request.args.get("a"), request.args.get("qa"))
         cb = resolve_pilot(request.args.get("b"), request.args.get("qb"))
         a = pilot_summary(ca) if ca else None
         b = pilot_summary(cb) if cb else None
         if a and b and (request.args.get("qa") or request.args.get("qb")):
-            return redirect(f"/compare.html?a={a.civ}&b={b.civ}")       # adresse courte, facile à partager
+            return redirect(f"/compare?a={a.civ}&b={b.civ}")       # adresse courte, facile à partager
         h2h, duel, svg = [], None, ""
         if a and b:
             for r in db().execute(
@@ -665,7 +678,7 @@ def create_app(db_path, proxy=False):
         pil, total, facets, comps = [], 0, [], []
         if q.isdigit():                                    # numéro CIVL
             if q not in removed and db().execute("SELECT 1 FROM pilots WHERE civlid=?", (q,)).fetchone():
-                return redirect(f"/pilot/{q}.html")
+                return redirect(f"/pilot/{q}")
         if len(qn) >= 2:
             pil, total, facets = pilot_index().search(q, nation=nation, sex=sex)
             words = qn.split()
@@ -675,7 +688,7 @@ def create_app(db_path, proxy=False):
                 ["%" + w + "%" for w in words])]
             # une seule réponse sans ambiguïté : on ouvre directement la page du pilote
             if request.args.get("go") and len(pil) == 1 and not nation:
-                return redirect(f"/pilot/{pil[0]['civlid']}.html")
+                return redirect(f"/pilot/{pil[0]['civlid']}")
         return render_template("search.html", **common, page="search", q=q, pilots=pil, total=total, facets=facets,
                                nation=nation or "", sex=sex, comps=comps, title=g.loc.gettext("Recherche"), qs="",
                                iso_date=dt.date.fromisoformat, tokens=tokens)
@@ -693,7 +706,7 @@ def create_app(db_path, proxy=False):
                             "n": p["n_comps"], "years": [p["first_end"][:4], p["last_end"][:4]] if p["first_end"] else None})
         return jsonify({"items": out, "total": total})
 
-    @app.route("/method.html")
+    @app.route("/method")
     def method():
         q1 = lambda sql: db().execute(sql).fetchone()[0]
         return render_template("method.html", **common, page="method", metrics=meta["metrics"], title=g.loc.gettext("Méthode"),
@@ -704,7 +717,7 @@ def create_app(db_path, proxy=False):
                                first=months[0], qs="",
                                skipped=db().execute("SELECT id FROM competitions WHERE rated=0").fetchall())
 
-    @app.route("/wprs.html")
+    @app.route("/wprs")
     def wprs():
         return render_template("wprs.html", **common, page="wprs", title=g.loc.gettext("Les biais du WPRS"), qs="")
 

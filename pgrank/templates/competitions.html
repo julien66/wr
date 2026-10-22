@@ -27,7 +27,7 @@
     <summary><h2 class="yh">{{ year }}</h2> <span>{{ _n("{n} compétition", "{n} compétitions", items|length) }}</span></summary>
     <ul class="clist">
     {% for t in items %}
-      <li data-n="{{ t.n_pilots }}" data-kind="{{ comp_kind(t.comp.name) }}"><a href="{{ root }}competition/{{ t.comp.id }}.html">{{ t.comp.name }}</a>
+      <li data-n="{{ t.n_pilots }}" data-kind="{{ comp_kind(t.comp.name) }}"><a href="{{ root }}competition/{{ t.comp.id }}{{ ext }}">{{ t.comp.name }}</a>
         <span class="when">{{ span_fr(t.comp.start, t.comp.end) }}</span>
         <span class="num">{{ _("{n} pilotes", n=t.n_pilots) }}</span>{% if not t.rated %} <em>{{ _("hors calcul") }}</em>{% endif %}</li>
     {% endfor %}

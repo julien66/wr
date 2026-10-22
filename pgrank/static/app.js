@@ -258,12 +258,12 @@ function ordinal(n) {
         var r = p.active === null ? "<small>" + T("js.unranked", "hors classement") + "</small>"
           : p.rank ? "<b>" + p.rank + "</b><small>" + p.rating + "</small>"
           : "<b>–</b><small>" + T("js.inactive", "inactif") + " · " + p.rating + "</small>";
-        return '<li role="option" data-i="' + i + '"><a href="/pilot/' + p.id + '.html"><span class="sn">' + esc(p.name) + '<small>' + esc(meta) + '</small></span><span class="sr2">' + r + "</span></a></li>";
+        return '<li role="option" data-i="' + i + '"><a href="/pilot/' + p.id + '"><span class="sn">' + esc(p.name) + '<small>' + esc(meta) + '</small></span><span class="sr2">' + r + "</span></a></li>";
       }).join("") + (pick ? "" : '<li class="all"><a href="/search?q=' + encodeURIComponent(input.value) + '">' + (total > list.length ? T("js.see_all", "Voir les {n} résultats", { n: total }) : T("js.all_results", "Tous les résultats")) + '…</a></li>');
       box.hidden = false;
     }
     function choose(i) {
-      if (!pick) { window.location = "/pilot/" + items[i].id + ".html"; return; }
+      if (!pick) { window.location = "/pilot/" + items[i].id; return; }
       pick.value = items[i].id; input.value = items[i].name; box.hidden = true;
       var f = input.form, other = Array.prototype.filter.call(f.querySelectorAll("input[data-pick]"), function (x) { return x !== input; })[0];
       if (other && f.elements[other.dataset.pick].value) f.submit(); else if (other) other.focus();
