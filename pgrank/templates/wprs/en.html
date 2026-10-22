@@ -68,7 +68,7 @@
   <p>The CIVL is aware of some of these criticisms. Among its 2026 proposals, <a href="https://civl2026.hyperknot.com/">according to public summaries</a>, Argentina (ARG 1) points to the “failure to differentiate winners and runners-up” and proposes a bonus of 10%, 5% and 2% for the top three; Poland (POL 4) notes that highly ranked pilots “inflate the points available to everyone”.</p>
 
   <h2>A ranking that learns from duels</h2>
-  <p>The algorithm looks only at the finishing order: an event with 100 pilots is read as 4,950 duels, and each pilot sees their rating go up if they beat better-rated pilots than expected, or down otherwise. This is the Elo principle, applied to every duel within the same event (details on the <a href="{{ root }}method.html">Method</a> page).</p>
+  <p>The algorithm looks only at the finishing order: an event with 100 pilots is read as 4,950 duels, and each pilot sees their rating go up if they beat better-rated pilots than expected, or down otherwise. This is the Elo principle, applied to every duel within the same event (details on the <a href="{{ root }}method{{ ext }}">Method</a> page).</p>
   <p>The rating has a precise meaning: the gap between two pilots gives the probability that one finishes ahead of the other.</p>
   <p class="formula">P(i ahead of j) = 1 / (1 + 10<sup>−(r<sub>i</sub> − r<sub>j</sub>) / 640</sup>)</p>
   <p>A ranking that states probabilities can be contradicted by the next results, which makes it testable. WPRS points cannot: “87 points” says nothing about the chance of beating someone.</p>
@@ -138,7 +138,7 @@
 
   <h2>Conclusion: a complement, not a replacement</h2>
   <p>The WPRS remains useful for what it was designed for: qualifying pilots, rewarding attendance, simplifying start lists. But as a measure of current level, it loses to a very simple algorithm that knows only the finishing order: 76.1% of duels correctly predicted against 72.5% over 458 events, and an advantage in 4 events out of 5.</p>
-  <p>This gain comes from the biases that a change of method corrects (weather, field, four results, ageing), not from any particular sophistication. Flaws specific to the model remain, such as the lack of a confidence measure for pilots who have competed little, and the most promising way to address them is to show an uncertainty next to the rating. This site now does so: the ± shown next to each rating is explained on the <a href="{{ root }}method.html">Method</a> page.</p>
+  <p>This gain comes from the biases that a change of method corrects (weather, field, four results, ageing), not from any particular sophistication. Flaws specific to the model remain, such as the lack of a confidence measure for pilots who have competed little, and the most promising way to address them is to show an uncertainty next to the rating. This site now does so: the ± shown next to each rating is explained on the <a href="{{ root }}method{{ ext }}">Method</a> page.</p>
   <p>The ranking built here has one advantage: it can be proven wrong. If a pilot, an organiser or the CIVL finds a case where it is mistaken, the comparison is the same one we have just made: which predicts the next event better?</p>
 
   <h2>An open project, reproducible tests</h2>

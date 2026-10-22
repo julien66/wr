@@ -68,7 +68,7 @@
   <p>La CIVL conoce parte de estas críticas. Entre sus propuestas de 2026, <a href="https://civl2026.hyperknot.com/">según resúmenes públicos</a>, Argentina (ARG 1) señala la «incapacidad de diferenciar a ganadores y segundos» y propone una bonificación del 10 %, el 5 % y el 2 % para los tres primeros; Polonia (POL 4) observa que los pilotos bien clasificados «inflan los puntos disponibles para todos».</p>
 
   <h2>Una clasificación que aprende de los duelos</h2>
-  <p>El algoritmo solo mira el orden de llegada: una prueba de 100 pilotos se lee como 4.950 duelos, y el rating de cada piloto sube si gana a pilotos mejor valorados de lo previsto, o baja en caso contrario. Es el principio del Elo, aplicado a todos los duelos de una misma prueba (los detalles están en la página <a href="{{ root }}method.html">Método</a>).</p>
+  <p>El algoritmo solo mira el orden de llegada: una prueba de 100 pilotos se lee como 4.950 duelos, y el rating de cada piloto sube si gana a pilotos mejor valorados de lo previsto, o baja en caso contrario. Es el principio del Elo, aplicado a todos los duelos de una misma prueba (los detalles están en la página <a href="{{ root }}method{{ ext }}">Método</a>).</p>
   <p>El rating tiene un significado preciso: la diferencia entre dos pilotos da la probabilidad de que uno termine por delante del otro.</p>
   <p class="formula">P(i delante de j) = 1 / (1 + 10<sup>−(r<sub>i</sub> − r<sub>j</sub>) / 640</sup>)</p>
   <p>Una clasificación que anuncia probabilidades puede ser contradicha por los resultados siguientes, y eso la hace comprobable. Los puntos WPRS no lo son: «87 puntos» no dice nada de la probabilidad de ganar a alguien.</p>
@@ -138,7 +138,7 @@
 
   <h2>Conclusión: un complemento, no un sustituto</h2>
   <p>El WPRS sigue siendo útil para aquello para lo que fue concebido: clasificar a los pilotos, premiar la presencia, simplificar las listas de salida. Pero como medida del nivel actual, pierde frente a un algoritmo muy sencillo que solo conoce el orden de llegada: un 76,1 % de duelos bien predichos frente a un 72,5 % en 458 pruebas, y ventaja en 4 de cada 5 pruebas.</p>
-  <p>Esta mejora procede de los sesgos que se corrigen al cambiar de método (meteorología, grupo, cuatro resultados, envejecimiento), no de una sofisticación especial. Quedan defectos propios del modelo, como la falta de una medida de confianza para los pilotos que han competido poco, y la vía más prometedora para tratarlos es mostrar una incertidumbre junto al rating. Es lo que hace ya este sitio: el ± que aparece junto a cada rating se explica en la página <a href="{{ root }}method.html">Método</a>.</p>
+  <p>Esta mejora procede de los sesgos que se corrigen al cambiar de método (meteorología, grupo, cuatro resultados, envejecimiento), no de una sofisticación especial. Quedan defectos propios del modelo, como la falta de una medida de confianza para los pilotos que han competido poco, y la vía más prometedora para tratarlos es mostrar una incertidumbre junto al rating. Es lo que hace ya este sitio: el ± que aparece junto a cada rating se explica en la página <a href="{{ root }}method{{ ext }}">Método</a>.</p>
   <p>La clasificación construida aquí tiene una ventaja: se la puede refutar. Si un piloto, un organizador o la CIVL encuentra un caso en el que se equivoca, la comparación es la misma que acabamos de hacer: ¿cuál predice mejor la prueba siguiente?</p>
 
   <h2>Un proyecto abierto, pruebas reproducibles</h2>

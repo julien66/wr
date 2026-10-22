@@ -81,7 +81,7 @@ def _pct(v, lo, hi):
     return round(max(0.0, min(100.0, (v - lo) / (hi - lo) * 100)), 1) if hi > lo else 0.0
 
 
-def build_picker(months, prefix, current, qs="", loc=None):
+def build_picker(months, prefix, current, qs="", loc=None, ext=".html"):
     loc = loc or Locale("fr")
     """Sélecteur de mois : une ligne par année, douze cases (liens vers chaque classement)."""
     # une case par mois de publication : le classement de clé 2025-12 est rangé en janvier 2026
@@ -94,7 +94,7 @@ def build_picker(months, prefix, current, qs="", loc=None):
             k = by_pub.get((y, mo))
             if k:
                 cur = ' aria-current="page"' if k == current else ""
-                cells.append(f'<a href="{prefix}{k}.html{qs}"{cur}>{loc.abbr(mo).rstrip(".")}</a>')
+                cells.append(f'<a href="{prefix}{k}{ext}{qs}"{cur}>{loc.abbr(mo).rstrip(".")}</a>')
             else:
                 cells.append("<span></span>")
         out.append(f'<div class="yr"><b>{y}</b>{"".join(cells)}</div>')
@@ -106,12 +106,12 @@ def _slim(html):
     return re.sub(r"\n\s*", "\n", html).strip() + "\n"
 
 
-def build_pager(key, pg, n_pages, prefix, qs="", loc=None):
+def build_pager(key, pg, n_pages, prefix, qs="", loc=None, ext=".html"):
     loc = loc or Locale("fr")
     """Liens de pagination : 1 … p-2 p-1 p p+1 p+2 … N."""
     if n_pages <= 1:
         return ""
-    href = lambda p: (f"{prefix}{key}.html" if p == 1 else f"{prefix}{key}-p{p}.html") + qs
+    href = lambda p: (f"{prefix}{key}{ext}" if p == 1 else f"{prefix}{key}-p{p}{ext}") + qs
     nums = sorted({1, n_pages, *range(max(1, pg - 2), min(n_pages, pg + 2) + 1)})
     out, prev = [], 0
     if pg > 1:
@@ -142,7 +142,8 @@ def render_site(out, cfg, out_dir, build_date=None):
     env.globals.update(pub_date=fr.pub_date, cutoff_date=fr.cutoff_date, data_month=fr.data_month)
     env.filters.update(f1=f1, f2=f2, fint=fint, fdelta=fdelta, date_fr=date_fr, iso_my=iso_my, pct=fr.pct, pct1=fr.pct1)
     env.globals.update(elo=(cfg.engine == "elo"), cfg=cfg, span_fr=span_fr, comp_kind=comp_kind, month_label=month_label,
-                       _=fr.gettext, _h=fr.html, _n=fr.ngettext, lang="fr")
+                       _=fr.gettext, _h=fr.html, _n=fr.ngettext, lang="fr",
+                       ext=".html", home="index.html")   # site statique : fichiers .html
 
     months = out.months
     traces = out.traces

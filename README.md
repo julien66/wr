@@ -162,8 +162,8 @@ absent de la page, ou filtrer les femmes, il y a une version dynamique :
     python build_db.py --db civl_data.db --out ranking.db     # calcule et écrit la base (~1 min, ~400 Mo)
     python app.py --db ranking.db                              # http://127.0.0.1:5000
 
-- Classement d'un mois, paginé par 100 : `/ranking/2007-12.html`, `/ranking/2007-12-p6.html`.
-- Saut direct à un rang : `/ranking/2007-12.html?rank=600` (formulaire « Aller au rang » sur chaque page). `/ranking/2007` ouvre le dernier mois de l'année.
+- Classement d'un mois, paginé par 100 : `/ranking/2007-12`, `/ranking/2007-12-p6` (les anciennes adresses en `.html` redirigent en 301 vers ces adresses).
+- Saut direct à un rang : `/ranking/2007-12?rank=600` (formulaire « Aller au rang » sur chaque page). `/ranking/2007` ouvre le dernier mois de l'année.
 - Recherche sur tous les pilotes et toutes les compétitions (sans accents) : `/search?q=garcia`.
 - Femmes : onglet « Féminin » (`?sex=F`) sur les classements. Le genre vient de `data/genders.csv` (`civlid,gender`), extrait de la liste CIVL ;
   `build_db.py --genders` accepte aussi directement un .xlsx de la liste CIVL. Les pilotes dont le genre n'est pas connu n'apparaissent pas dans l'onglet. Pour en ajouter, écrire une ligne `civlid,F` (ou `M`) dans `data/genders_manual.csv`, qui est prioritaire, puis relancer `build_db.py`.
@@ -193,7 +193,7 @@ Le site dynamique choisit la langue du navigateur (en-tête `Accept-Language`) e
   `/_debug` supprimé, base ouverte en lecture seule. Pages pilotes, recherche et API : `noindex`. `robots.txt` et `sitemap.xml` sont générés.
 - **Aucune ressource tierce** : plus de polices Google (police système de repli). Pour retrouver Archivo et Source Serif 4, les télécharger
   (fontsource, Google Fonts) et les servir depuis `pgrank/static/` avec des `@font-face`.
-- **Mentions légales** : page `/legal.html` (4 langues). Renseigner `editor_name` et `host_info` dans `pgrank/config.py` (affichés s'ils sont remplis) ;
+- **Mentions légales** : page `/legal` (4 langues). Renseigner `editor_name` et `host_info` dans `pgrank/config.py` (affichés s'ils sont remplis) ;
   `contact_email` est déjà réglé.
 - **Retrait d'un pilote** (droit d'effacement / d'opposition) : ajouter son numéro CIVL à `data/removals.csv`, puis relancer `build_db.py`.
   Son nom, sa nation et son genre disparaissent, sa page devient introuvable ; sa ligne reste anonyme (« — ») pour garder les rangs intacts.
