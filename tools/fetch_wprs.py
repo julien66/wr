@@ -107,6 +107,38 @@ def write_month(path, rows, full=False):
         f.write(buf.getvalue().encode("utf-8"))
 
 
+def fetch_missing(s, lst, pause=20.0, since=None, until=None, month=None, full=False):
+    """Télécharge les mois de lst (liste des classements) absents de data/wprs ; renvoie les mois écrits."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    with open(OUT / "rankings.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["month", "date", "ranking_id"])
+        for d in lst:
+            w.writerow([d["date"][:7], d["date"], d["id"]])
+    todo = []
+    for d in lst:
+        key = d["date"][:7]
+        if month and key != month:
+            continue
+        if since and key < since or until and key > until:
+            continue
+        if not month and (OUT / f"{key}.csv.gz").exists():
+            continue
+        todo.append((key, d["id"]))
+    todo.reverse()                      # du plus récent au plus ancien
+    print(f"{len(lst)} classements publiés, {len(todo)} à télécharger")
+    done = []
+    for i, (key, rid) in enumerate(todo, 1):
+        t0 = time.time()
+        date, rows = parse_xlsx(export_xlsx(s, rid))
+        write_month(OUT / f"{key}.csv.gz", rows, full)
+        print(f"[{i}/{len(todo)}] {key} (id {rid}, {date}) : {len(rows)} pilotes, {time.time() - t0:.0f} s", flush=True)
+        done.append(key)
+        if i < len(todo):
+            time.sleep(pause)
+    return done
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--since", help="premier mois AAAA-MM")
@@ -116,33 +148,9 @@ def main():
     ap.add_argument("--pause", type=float, default=20.0, help="secondes entre deux mois : le site est fragile, ne pas descendre trop bas")
     a = ap.parse_args()
 
-    OUT.mkdir(parents=True, exist_ok=True)
     s = session()
     lst = sorted(ranking_list(s), key=lambda d: d["date"])
-    with open(OUT / "rankings.csv", "w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["month", "date", "ranking_id"])
-        for d in lst:
-            w.writerow([d["date"][:7], d["date"], d["id"]])
-
-    todo = []
-    for d in lst:
-        key = d["date"][:7]
-        if a.month and key != a.month:
-            continue
-        if a.since and key < a.since or a.until and key > a.until:
-            continue
-        if not a.month and (OUT / f"{key}.csv.gz").exists():
-            continue
-        todo.append((key, d["id"]))
-    todo.reverse()                      # du plus récent au plus ancien
-    print(f"{len(lst)} classements publiés, {len(todo)} à télécharger")
-    for i, (key, rid) in enumerate(todo, 1):
-        t0 = time.time()
-        date, rows = parse_xlsx(export_xlsx(s, rid))
-        write_month(OUT / f"{key}.csv.gz", rows, a.full)
-        print(f"[{i}/{len(todo)}] {key} (id {rid}, {date}) : {len(rows)} pilotes, {time.time() - t0:.0f} s", flush=True)
-        time.sleep(a.pause)
+    fetch_missing(s, lst, a.pause, a.since, a.until, a.month, a.full)
 
 
 if __name__ == "__main__":

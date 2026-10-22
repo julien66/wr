@@ -1,0 +1,66 @@
+# Mise à jour mensuelle des résultats depuis civlcomps (update.py), puis PR avec les nouvelles données.
+# Le 2 de chaque mois (la CIVL publie le classement WPRS le 1er), ou à la main : Actions → « Mise à jour mensuelle » → Run workflow.
+# Prérequis : Settings → Actions → General → « Allow GitHub Actions to create and approve pull requests ».
+name: Mise à jour mensuelle
+
+on:
+  schedule:
+    - cron: "0 5 2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: mise-a-jour
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt -r requirements-wprs.txt
+
+      - name: Import des compétitions et recalcul
+        id: update
+        run: |
+          set +e
+          python -u update.py 2>&1 | tee update.log
+          echo "status=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Texte de la PR
+        run: |
+          {
+            echo "Mise à jour automatique lancée par le workflow « Mise à jour mensuelle » ($(date -u +%Y-%m-%d))."
+            echo
+            echo "En fusionnant cette PR, Render redéploie le site et recalcule le classement."
+            echo
+            echo '```'
+            grep -v -E '^\[[0-9]+/[0-9]+\] [0-9]+ : [0-9]+ pilotes importés$' update.log | tail -n 80
+            echo '```'
+          } > pr-body.md
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: data
+          branch: mise-a-jour/donnees
+          delete-branch: true
+          commit-message: "Mise à jour des résultats (civlcomps)"
+          title: "Mise à jour des résultats (civlcomps)"
+          body-path: pr-body.md
+          assignees: julien66
+
+      - name: Échec si des compétitions n'ont pas pu être importées
+        if: steps.update.outputs.status != '0'
+        run: |
+          echo "update.py a signalé des échecs : voir le journal ci-dessus. Relancer le workflow plus tard."
+          exit 1
