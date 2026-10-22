@@ -5,13 +5,15 @@
     python app.py --db ranking.db            # http://127.0.0.1:5000
 """
 import argparse
+import csv
+import io
 import datetime as dt
 import json
 import re
 import math
 import sqlite3
 import time as _time
-from collections import defaultdict, deque
+from collections import OrderedDict, defaultdict, deque
 from pathlib import Path
 from types import SimpleNamespace as NS
 from urllib.parse import urlencode
@@ -183,7 +185,7 @@ def create_app(db_path, proxy=False):
     @app.route("/robots.txt")
     def robots():
         base = request.url_root.rstrip("/")
-        txt = f"User-agent: *\nDisallow: /api/\nDisallow: /search\nDisallow: /*?lang=\n\nSitemap: {base}/sitemap.xml\n"
+        txt = f"User-agent: *\nDisallow: /api/\nDisallow: /search\nDisallow: /exports/\nDisallow: /compare.html\nDisallow: /*?lang=\n\nSitemap: {base}/sitemap.xml\n"
         return app.response_class(txt, mimetype="text/plain")
 
     @app.route("/sitemap.xml")
@@ -469,7 +471,174 @@ def create_app(db_path, proxy=False):
         return render_template("pilot.html", **common, page="pilot", title=p["name"], name=p["name"], nation=p["nation"],
                                civ=civ, fin=fin, st=st, table=list(reversed(table)), js=js, n_world=fm["n_active"],
                                n_world_f=fm["n_active_f"], gender=p["gender"], qs="", rdata=rdata if rank_pts else None,
-                               best=best, best_f=best_f)
+                               best=best, best_f=best_f,
+                               og_image=request.url_root.rstrip("/") + f"/og/pilot/{civ}.png?l={g.loc.lang}",
+                               og_desc=g.loc.gettext("Rang mondial, niveau Elo et résultats de {name} en compétition de parapente.", name=p["name"]))
+
+    # ---------------------------------------------------------------- exports CSV
+    def csv_response(name, header, rows):
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(header)
+        w.writerows(rows)
+        resp = app.response_class("\ufeff" + buf.getvalue(), mimetype="text/csv")   # BOM : accents corrects dans Excel
+        resp.headers["Content-Disposition"] = f'attachment; filename="{name}"'
+        resp.headers["Cache-Control"] = "public, max-age=3600"
+        return resp
+
+    @app.route("/exports/classement_<key>.csv")
+    def export_ranking(key):
+        """Classement complet d'un mois (pilotes actifs), ?sex=F pour le classement féminin."""
+        if key not in mkeys:
+            abort(404)
+        sex = sex_arg()
+        num = "rank_fa" if sex else "rank_a"
+        rows = []
+        for r in db().execute(f"SELECT m.*, p.name, p.nation FROM monthly m JOIN pilots p USING(civlid) "
+                              f"WHERE m.month=? AND m.{num} IS NOT NULL ORDER BY m.{num}", (key,)):
+            gone = r["civlid"] in removed
+            rows.append([r[num], "" if gone else r["civlid"], r["name"], r["nation"], round(r["rating"], 1),
+                         round(r["sd"]) if r["sd"] else "", r["rank_lo"] or "", r["rank_hi"] or "", r["n"], r["last"]])
+        return csv_response(f"classement_{key}{'_feminin' if sex else ''}.csv",
+                            ["rang", "civlid", "pilote", "nation", "rating", "incertitude", "rang_probable_min",
+                             "rang_probable_max", "competitions", "derniere_competition"], rows)
+
+    @app.route("/exports/competition_<int:cid>.csv")
+    def export_competition(cid):
+        """Calcul pilote par pilote d'une compétition."""
+        c = db().execute("SELECT * FROM competitions WHERE id=?", (cid,)).fetchone()
+        if c is None:
+            abort(404)
+        rows = []
+        for r in db().execute("SELECT r.*, p.name, p.nation FROM results r JOIN pilots p USING(civlid) "
+                              "WHERE r.comp_id=? ORDER BY r.rank, p.name", (cid,)):
+            gone = r["civlid"] in removed
+            num = lambda v, d: "" if v is None or v != v else round(v, d)
+            rows.append([r["rank"], "" if gone else r["civlid"], r["name"], r["nation"], num(r["score"], 1),
+                         r["prior"], num(r["idle"], 1), num(r["k"], 1), num(r["mu_pre"], 1), num(r["mu_post"], 1),
+                         num(r["won"], 4), num(r["exp_prob"], 4), r["exp_rank"]])
+        return csv_response(f"competition_{cid}.csv",
+                            ["rang", "civlid", "pilote", "nation", "score", "competitions_avant", "mois_inactif", "k",
+                             "niveau_avant", "niveau_apres", "duels_gagnes", "duels_attendus", "rang_attendu"], rows)
+
+    # ---------------------------------------------------------------- image d'aperçu (partage)
+    og_cache = OrderedDict()
+
+    @app.route("/og/pilot/<civ>.png")
+    def og_pilot(civ):
+        """Image 1200 × 630 affichée quand on partage la page d'un pilote (réseaux sociaux, messageries)."""
+        from pgrank.ogimage import pilot_card
+        if request.args.get("l") in LANGS:            # langue fixée dans l'adresse (les robots n'ont pas de cookie)
+            g.loc = Locale(request.args["l"])
+        key = (civ, g.loc.lang)
+        png = og_cache.get(key)
+        if png is None:
+            a = pilot_summary(civ)
+            if a is None:
+                abort(404)
+            L = g.loc
+            fm = db().execute("SELECT n_active FROM months WHERE key=?", (mkeys[-1],)).fetchone()
+            stats = [(L.gettext("Rang mondial"), L.fint(a.rank) if a.rank else "–",
+                      L.gettext("sur {n}", n=L.fint(fm["n_active"])) if a.rank else L.gettext("inactif : hors classement")),
+                     (L.gettext("Niveau Elo"), str(round(a.rating)) if a.rating is not None else "–",
+                      L.gettext("± {s} (incertitude)", s=round(a.sd)) if a.sd else ""),
+                     (L.gettext("Meilleur rang"), L.fint(a.best) if a.best else "–", L.key_my(a.best_m) if a.best_m else ""),
+                     (L.gettext("Victoires"), str(a.wins), L.ngettext("{n} podium", "{n} podiums", a.podiums))]
+            png = pilot_card(L.gettext(cfg.site_title), a.name, a.nation, stats, [v for _, v in a.series])
+            og_cache[key] = png
+            while len(og_cache) > 500:
+                og_cache.popitem(last=False)
+        resp = app.response_class(png, mimetype="image/png")
+        resp.headers["Cache-Control"] = "public, max-age=86400"
+        return resp
+
+    # ---------------------------------------------------------------- comparaison de deux pilotes
+    def pilot_summary(civ):
+        """Chiffres clés d'un pilote pour la comparaison (None si inconnu ou retiré)."""
+        p = db().execute("SELECT * FROM pilots WHERE civlid=?", (civ,)).fetchone()
+        if p is None or civ in removed:
+            return None
+        f = db().execute("SELECT * FROM monthly WHERE month=? AND civlid=?", (mkeys[-1], civ)).fetchone()
+        ranks = [r[0] for r in db().execute(
+            "SELECT r.rank FROM results r JOIN competitions c ON c.id=r.comp_id WHERE r.civlid=? AND c.rated=1", (civ,))]
+        best = db().execute("SELECT rank_a, month FROM monthly WHERE civlid=? AND rank_a IS NOT NULL "
+                            "ORDER BY rank_a, month LIMIT 1", (civ,)).fetchone()
+        series = [(r["month"], r["rating"]) for r in db().execute(
+            "SELECT month, rating FROM monthly WHERE civlid=? ORDER BY month", (civ,))]
+        return NS(civ=civ, name=p["name"], nation=p["nation"], rank=f["rank_a"] if f else None,
+                  rating=f["rating"] if f else None, sd=f["sd"] if f else None, active=bool(f["active"]) if f else False,
+                  last=f["last"] if f else None, n=len(ranks), wins=sum(k == 1 for k in ranks),
+                  podiums=sum(k <= 3 for k in ranks), top10=sum(k <= 10 for k in ranks),
+                  best=best["rank_a"] if best else None, best_m=best["month"] if best else None, series=series)
+
+    def resolve_pilot(civ, q):
+        """Numéro CIVL donné, sinon meilleur résultat de la recherche par nom."""
+        civ = (civ or "").strip()
+        if civ.isdigit():
+            return civ
+        q = (q or "").strip()
+        if q.isdigit():
+            return q
+        if len(norm(q)) >= 2:
+            found, _, _ = pilot_index().search(q, limit=1)
+            if found:
+                return str(found[0]["civlid"])
+        return None
+
+    def compare_svg(a, b):
+        """Courbes des deux ratings, mois par mois (SVG en ligne, sans JavaScript)."""
+        sa, sb = dict(a.series), dict(b.series)
+        ks = sorted(set(sa) | set(sb))
+        if len(ks) < 2:
+            return ""
+        vals = list(sa.values()) + list(sb.values())
+        lo, hi = math.floor(min(vals) / 100) * 100, math.ceil(max(vals) / 100) * 100
+        hi = hi if hi > lo else lo + 100
+        W, H, L, Rm, T, B = 1000, 320, 52, 12, 12, 30
+        x = lambda k: L + (W - L - Rm) * ks.index(k) / (len(ks) - 1)
+        y = lambda v: T + (H - T - B) * (1 - (v - lo) / (hi - lo))
+        out = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-hidden="true">']
+        step = 100 if hi - lo <= 800 else 250
+        v = lo
+        while v <= hi:
+            out.append(f'<line class="gl" x1="{L}" x2="{W - Rm}" y1="{y(v):.1f}" y2="{y(v):.1f}"/>'
+                       f'<text class="tk" x="{L - 6}" y="{y(v) + 4:.1f}" text-anchor="end">{v}</text>')
+            v += step
+        years = sorted({k[:4] for k in ks})
+        every = max(1, math.ceil(len(years) / 10))
+        for yr in years[::every]:
+            k0 = next(k for k in ks if k.startswith(yr))
+            out.append(f'<text class="tk" x="{x(k0):.1f}" y="{H - 8}" text-anchor="middle">{yr}</text>')
+        for cls, s in (("la", sa), ("lb", sb)):
+            pts = " ".join(f"{x(k):.1f},{y(v):.1f}" for k, v in sorted(s.items()))
+            out.append(f'<polyline class="{cls}" points="{pts}"/>')
+        out.append("</svg>")
+        return "".join(out)
+
+    @app.route("/compare.html")
+    def compare():
+        ca = resolve_pilot(request.args.get("a"), request.args.get("qa"))
+        cb = resolve_pilot(request.args.get("b"), request.args.get("qb"))
+        a = pilot_summary(ca) if ca else None
+        b = pilot_summary(cb) if cb else None
+        if a and b and (request.args.get("qa") or request.args.get("qb")):
+            return redirect(f"/compare.html?a={a.civ}&b={b.civ}")       # adresse courte, facile à partager
+        h2h, duel, svg = [], None, ""
+        if a and b:
+            for r in db().execute(
+                    "SELECT c.id, c.name, c.end, c.n_pilots, ra.rank AS ka, rb.rank AS kb FROM results ra "
+                    "JOIN results rb ON rb.comp_id=ra.comp_id AND rb.civlid=? JOIN competitions c ON c.id=ra.comp_id "
+                    "WHERE ra.civlid=? AND c.rated=1 ORDER BY c.end DESC, c.id DESC", (b.civ, a.civ)):
+                h2h.append(NS(id=r["id"], name=r["name"], end=dt.date.fromisoformat(r["end"]), n=r["n_pilots"], ka=r["ka"], kb=r["kb"]))
+            if a.rating is not None and b.rating is not None:
+                duel = 1 / (1 + 10 ** ((b.rating - a.rating) / params["scale"]))
+            svg = compare_svg(a, b)
+        title = g.loc.gettext("Comparer deux pilotes")
+        if a and b:
+            title = f"{a.name} – {b.name}"
+        return render_template("compare.html", **common, page="compare", title=title, a=a, b=b, h2h=h2h, duel=duel, svg=svg,
+                               qa=request.args.get("qa", ""), qb=request.args.get("qb", ""),
+                               wins_a=sum(x.ka < x.kb for x in h2h), wins_b=sum(x.kb < x.ka for x in h2h), qs="")
 
     # ---------------------------------------------------------------- recherche
     index_cache = {}

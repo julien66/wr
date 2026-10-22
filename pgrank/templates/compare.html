@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% macro rk(p) %}{% if p.rank %}{{ p.rank|fint }}{% elif p.rating is not none %}<span class="offtag">{{ _("inactif") }}</span>{% else %}–{% endif %}{% endmacro %}
+{% block main %}
+<section class="hero">
+  <h1 class="long">{% if a and b %}{{ a.name }} <span class="vs">{{ _("contre") }}</span> {{ b.name }}{% else %}{{ _("Comparer deux pilotes") }}{% endif %}</h1>
+  <p class="lede">{{ _("Niveaux, résultats et confrontations directes de deux pilotes.") }}</p>
+</section>
+
+<form class="cmpform" action="{{ root }}compare.html" method="get" autocomplete="off">
+  <label class="gsearch pick"><span>{{ _("Pilote A") }}</span>
+    <input type="search" name="qa" value="{{ a.name if a else qa }}" data-pick="a" placeholder="{{ _('Nom ou numéro CIVL') }}" required></label>
+  <input type="hidden" name="a" value="{{ a.civ if a }}">
+  <label class="gsearch pick"><span>{{ _("Pilote B") }}</span>
+    <input type="search" name="qb" value="{{ b.name if b else qb }}" data-pick="b" placeholder="{{ _('Nom ou numéro CIVL') }}" required></label>
+  <input type="hidden" name="b" value="{{ b.civ if b }}">
+  <button type="submit">{{ _("Comparer") }}</button>
+</form>
+{% if (qa and not a) or (qb and not b) %}<p class="note warn">{{ _("Pilote introuvable : vérifiez le nom ou utilisez le numéro CIVL.") }}</p>{% endif %}
+
+{% if a and b %}
+<table class="board cmp">
+  <caption class="sr">{{ _("Comparaison") }}</caption>
+  <thead><tr><th scope="col"></th>
+    <th scope="col" class="num ca"><a href="{{ root }}pilot/{{ a.civ }}.html">{{ a.name }}</a> <span class="nat">{{ a.nation }}</span></th>
+    <th scope="col" class="num cb"><a href="{{ root }}pilot/{{ b.civ }}.html">{{ b.name }}</a> <span class="nat">{{ b.nation }}</span></th></tr></thead>
+  <tbody>
+    <tr><th scope="row">{{ _("Rang mondial") }}</th><td class="num">{{ rk(a) }}</td><td class="num">{{ rk(b) }}</td></tr>
+    <tr><th scope="row">{{ _("Niveau Elo") }}</th>
+      <td class="num rt">{{ a.rating|round|int if a.rating is not none else "–" }}{% if a.sd %}<small class="sd">±{{ a.sd|round|int }}</small>{% endif %}</td>
+      <td class="num rt">{{ b.rating|round|int if b.rating is not none else "–" }}{% if b.sd %}<small class="sd">±{{ b.sd|round|int }}</small>{% endif %}</td></tr>
+    <tr><th scope="row">{{ _("Meilleur rang") }}</th><td class="num">{% if a.best %}{{ a.best|fint }}<small class="sub">{{ a.best_m|iso_my_k }}</small>{% else %}–{% endif %}</td>
+      <td class="num">{% if b.best %}{{ b.best|fint }}<small class="sub">{{ b.best_m|iso_my_k }}</small>{% else %}–{% endif %}</td></tr>
+    <tr><th scope="row">{{ _("Compétitions évaluées") }}</th><td class="num">{{ a.n }}</td><td class="num">{{ b.n }}</td></tr>
+    <tr><th scope="row">{{ _("Victoires") }}</th><td class="num">{{ a.wins }}</td><td class="num">{{ b.wins }}</td></tr>
+    <tr><th scope="row">{{ _("Podiums") }}</th><td class="num">{{ a.podiums }}</td><td class="num">{{ b.podiums }}</td></tr>
+    <tr><th scope="row">{{ _("Top 10") }}</th><td class="num">{{ a.top10 }}</td><td class="num">{{ b.top10 }}</td></tr>
+    <tr><th scope="row">{{ _("Dernière compétition") }}</th><td class="num">{{ a.last|iso_my if a.last else "–" }}</td><td class="num">{{ b.last|iso_my if b.last else "–" }}</td></tr>
+  </tbody>
+</table>
+
+{% if duel is not none %}
+<p class="duel">{{ _h("Sur un duel, d’après les niveaux actuels : <b>{p}</b> de chances que {a} finisse devant {b}.", p=(duel * 100)|pct, a=a.name, b=b.name) }}</p>
+{% endif %}
+
+{% if svg %}
+<section class="chartbox cmpchart" aria-labelledby="cc">
+  <div class="charthead">
+    <h2 id="cc">{{ _("Niveau Elo, mois par mois") }}</h2>
+    <ul class="key" aria-hidden="true"><li><i class="k-a"></i>{{ a.name }}</li><li><i class="k-b"></i>{{ b.name }}</li></ul>
+  </div>
+  <div class="chartscroll">{{ svg|safe }}</div>
+</section>
+{% endif %}
+
+<h2>{{ _("Face à face") }}</h2>
+{% if h2h %}
+<p class="lede">{{ _("{n} compétitions en commun : {a} a fini devant {wa} fois, {b} {wb} fois.", n=h2h|length, a=a.name, b=b.name, wa=wins_a, wb=wins_b) }}</p>
+<div class="scroll">
+<table class="board calc">
+  <thead><tr><th scope="col">{{ _("Compétition") }}</th><th scope="col" class="num">{{ a.name }}</th><th scope="col" class="num">{{ b.name }}</th></tr></thead>
+  <tbody>
+  {% for x in h2h %}
+  <tr><td class="pl"><a href="{{ root }}competition/{{ x.id }}.html">{{ x.name }}</a><small class="sub">{{ x.end|date_fr }} · {{ _("{n} pilotes", n=x.n) }}</small></td>
+    <td class="num{% if x.ka < x.kb %} win{% endif %}">{{ x.ka }}</td><td class="num{% if x.kb < x.ka %} win{% endif %}">{{ x.kb }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="note">{{ _("Ces deux pilotes n’ont jamais participé à la même compétition évaluée.") }}</p>
+{% endif %}
+{% endif %}
+{% endblock %}

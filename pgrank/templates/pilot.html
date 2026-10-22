@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main %}
 <section class="hero">
-  <p class="crumb"><a href="{{ root }}index.html">{{ _("Classement") }}</a></p>
+  <p class="crumb"><a href="{{ root }}index.html">{{ _("Classement") }}</a>{% if dyn %} <a href="{{ root }}compare.html?a={{ civ }}">{{ _("Comparer avec un autre pilote") }}</a>{% endif %}</p>
   <h1 class="long">{{ name }} <span class="nat big">{{ nation }}</span></h1>
   {% if fin %}
   <p class="lede">{{ _n("{n} compétition évaluée, dernière en {last}.", "{n} compétitions évaluées, dernière en {last}.", st.n, last=fin.last|iso_my) }}

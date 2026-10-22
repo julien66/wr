@@ -75,6 +75,7 @@ La barre montre le niveau estimé : le point est μ, la partie foncée va du rat
 </table>
 {% if not rows %}<p class="note">{{ _("Aucun pilote ne correspond.") }}</p>{% endif %}
 {{ pager|safe }}
+{% if dyn %}<p class="note dl-csv"><a href="{{ root }}exports/classement_{{ month.key }}.csv{{ '?sex=F' if sex }}" download>{{ _("Télécharger ce classement (CSV)") }}</a></p>{% endif %}
 {% if not dyn and month.n_rated > n_shown %}<p class="note">{{ _("Les {n} premiers pilotes sur {total} (le détail complet n’est conservé que pour les {m} derniers mois).", n=n_shown|fint, total=month.n_rated|fint, m=cfg.full_months) }}</p>
 {% elif dyn and sex %}<p class="note">{{ _("Classement féminin : le genre est connu pour {n} pilotes (ceux de la liste CIVL fournie) ; les autres n’apparaissent pas ici. Le niveau Elo est celui du classement général : les pilotes sont comparées à tous les pilotes.", n=genre_known|fint) }}</p>
 {% elif n_pages > 1 %}<p class="note">{{ _("Pilotes {a} à {b} sur {n}.", a=first|fint, b=last|fint, n=n_shown|fint) }} {% if dyn %}{{ _("Le filtre porte sur la page affichée ; la recherche en haut de page porte sur tous les pilotes.") }}{% else %}{{ _("La recherche porte sur la page affichée.") }}{% endif %}</p>{% endif %}

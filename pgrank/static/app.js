@@ -50,6 +50,9 @@ function ordinal(n) {
     toggle.addEventListener("change", function () { store.set("hideOff", toggle.checked ? "1" : "0"); apply(); });
   }
 
+  // graphiques plus larges que l'écran (mobile) : on montre d'abord la partie la plus récente
+  document.querySelectorAll(".chartscroll").forEach(function (el) { el.scrollLeft = el.scrollWidth; });
+
   // listes déroulantes qui s'appliquent tout de suite (pays du classement)
   document.querySelectorAll("select[data-autosubmit]").forEach(function (sel) {
     sel.addEventListener("change", function () { sel.form.submit(); });
@@ -239,7 +242,8 @@ function ordinal(n) {
 
 // Suggestions de pilotes sous la barre de recherche (site dynamique) : flèches + Entrée, Échap pour fermer.
 (function () {
-  document.querySelectorAll("form.gsearch input[type=search]").forEach(function (input) {
+  document.querySelectorAll("form.gsearch input[type=search], input[data-pick]").forEach(function (input) {
+    var pick = input.dataset.pick && input.form && input.form.elements[input.dataset.pick];
     var box = document.createElement("ul"), items = [], sel = -1, timer = null, seq = 0;
     box.className = "suggest"; box.setAttribute("role", "listbox"); box.hidden = true;
     input.setAttribute("aria-autocomplete", "list");
@@ -255,11 +259,22 @@ function ordinal(n) {
           : p.rank ? "<b>" + p.rank + "</b><small>" + p.rating + "</small>"
           : "<b>–</b><small>" + T("js.inactive", "inactif") + " · " + p.rating + "</small>";
         return '<li role="option" data-i="' + i + '"><a href="/pilot/' + p.id + '.html"><span class="sn">' + esc(p.name) + '<small>' + esc(meta) + '</small></span><span class="sr2">' + r + "</span></a></li>";
-      }).join("") + '<li class="all"><a href="/search?q=' + encodeURIComponent(input.value) + '">' + (total > list.length ? T("js.see_all", "Voir les {n} résultats", { n: total }) : T("js.all_results", "Tous les résultats")) + '…</a></li>';
+      }).join("") + (pick ? "" : '<li class="all"><a href="/search?q=' + encodeURIComponent(input.value) + '">' + (total > list.length ? T("js.see_all", "Voir les {n} résultats", { n: total }) : T("js.all_results", "Tous les résultats")) + '…</a></li>');
       box.hidden = false;
     }
+    function choose(i) {
+      if (!pick) { window.location = "/pilot/" + items[i].id + ".html"; return; }
+      pick.value = items[i].id; input.value = items[i].name; box.hidden = true;
+      var f = input.form, other = Array.prototype.filter.call(f.querySelectorAll("input[data-pick]"), function (x) { return x !== input; })[0];
+      if (other && f.elements[other.dataset.pick].value) f.submit(); else if (other) other.focus();
+    }
+    if (pick) box.addEventListener("click", function (e) {
+      var li = e.target.closest("li[data-i]");
+      if (li) { e.preventDefault(); choose(+li.dataset.i); }
+    });
     function mark() { box.querySelectorAll("li[data-i]").forEach(function (li, i) { li.classList.toggle("on", i === sel); }); }
     input.addEventListener("input", function () {
+      if (pick) pick.value = "";
       clearTimeout(timer);
       var q = input.value.trim();
       if (q.length < 2) { box.hidden = true; return; }
@@ -273,7 +288,7 @@ function ordinal(n) {
       if (box.hidden) return;
       if (e.key === "ArrowDown") { sel = Math.min(items.length - 1, sel + 1); mark(); e.preventDefault(); }
       else if (e.key === "ArrowUp") { sel = Math.max(-1, sel - 1); mark(); e.preventDefault(); }
-      else if (e.key === "Enter" && sel >= 0) { window.location = "/pilot/" + items[sel].id + ".html"; e.preventDefault(); }
+      else if (e.key === "Enter" && sel >= 0) { choose(sel); e.preventDefault(); }
       else if (e.key === "Escape") { box.hidden = true; }
     });
     document.addEventListener("click", function (e) { if (!input.parentNode.contains(e.target)) box.hidden = true; });

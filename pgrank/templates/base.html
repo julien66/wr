@@ -8,8 +8,12 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ _(site_title) }}">
 <meta property="og:title" content="{{ title }} – {{ _(site_title) }}">
-<meta property="og:description" content="{{ _('Classement mondial des pilotes de parapente calculé avec un système Elo à partir des résultats de compétitions publiés par la CIVL. Site indépendant et non officiel.') }}">
-<meta name="twitter:card" content="summary">
+<meta property="og:description" content="{{ og_desc if og_desc is defined and og_desc else _('Classement mondial des pilotes de parapente calculé avec un système Elo à partir des résultats de compétitions publiés par la CIVL. Site indépendant et non officiel.') }}">
+{% if og_image is defined and og_image %}<meta property="og:image" content="{{ og_image }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ og_image }}">{% else %}<meta name="twitter:card" content="summary">{% endif %}
 <link rel="stylesheet" href="{{ root }}static/style.css{% if asset_v %}?v={{ asset_v.css }}{% endif %}">
 </head>
 <body class="p-{{ page }}">
