@@ -1,0 +1,3 @@
+numpy>=1.26
+requests
+openpyxl   # seulement pour tools/fetch_wprs.py (téléchargement des classements)
