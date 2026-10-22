@@ -5,22 +5,21 @@
   <p class="lede">{% if actifs %}{{ _("{n} pilotes actifs (les inactifs sont masqués : le rang est calculé parmi les actifs).", n=month.n_rated|fint) }}{% else %}{{ _("{n} pilotes classés ; {i} inactifs affichés à leur place, sans rang.", n=month.n_active|fint, i=(month.n_rated - month.n_active)|fint) }}{% endif %} {% if comps %}{{ _n("{n} nouvelle compétition depuis le classement précédent.", "{n} nouvelles compétitions depuis le classement précédent.", comps|length) }}{% else %}{{ _("Aucune nouvelle compétition depuis le classement précédent : seuls les statuts d’activité ont évolué.") }}{% endif %}</p>
   <p class="lede pubdate">{{ _("Publié le {date}, avec les compétitions terminées jusqu’au {cutoff}.", date=pub_date(month.year, month.month), cutoff=cutoff_date(month.year, month.month)) }}</p>
   <div class="monthnav">
-    {% if prev_m %}<a class="step" href="{{ prefix }}{{ prev_m.key }}{{ ext }}{{ qs }}" rel="prev" aria-label="{{ _('Mois précédent') }}">‹ {{ month_label(prev_m.year, prev_m.month) }}</a>{% else %}<span></span>{% endif %}
+    {% if prev_m %}<a class="step" href="{{ prefix }}{{ prev_m.key }}{{ qs }}" rel="prev" aria-label="{{ _('Mois précédent') }}">‹ {{ month_label(prev_m.year, prev_m.month) }}</a>{% else %}<span></span>{% endif %}
     <details class="picker">
       <summary>{{ _("Choisir un mois") }}</summary>
       <div class="grid">{{ picker|safe }}</div>
     </details>
-    {% if next_m %}<a class="step" href="{{ prefix }}{{ next_m.key }}{{ ext }}{{ qs }}" rel="next" aria-label="{{ _('Mois suivant') }}">{{ month_label(next_m.year, next_m.month) }} ›</a>{% else %}<span></span>{% endif %}
+    {% if next_m %}<a class="step" href="{{ prefix }}{{ next_m.key }}{{ qs }}" rel="next" aria-label="{{ _('Mois suivant') }}">{{ month_label(next_m.year, next_m.month) }} ›</a>{% else %}<span></span>{% endif %}
   </div>
 </section>
 
-{% if dyn %}
 <section class="tools sexnav">
   <nav class="tabs" aria-label="{{ _('Catégorie') }}">
-    <a href="{{ prefix }}{{ month.key }}{{ ext }}{{ qs_all }}"{% if not sex %} aria-current="page"{% endif %}>{{ _("Général") }}</a>
-    <a href="{{ prefix }}{{ month.key }}{{ ext }}{{ qs_f }}"{% if sex %} aria-current="page"{% endif %}>{{ _("Féminin") }}</a>
+    <a href="{{ prefix }}{{ month.key }}{{ qs_all }}"{% if not sex %} aria-current="page"{% endif %}>{{ _("Général") }}</a>
+    <a href="{{ prefix }}{{ month.key }}{{ qs_f }}"{% if sex %} aria-current="page"{% endif %}>{{ _("Féminin") }}</a>
   </nav>
-  {% if nations %}<form class="natsel" action="{{ prefix }}{{ month.key }}{{ ext }}" method="get">
+  {% if nations %}<form class="natsel" action="{{ prefix }}{{ month.key }}" method="get">
     {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}{% if not actifs %}<input type="hidden" name="actifs" value="0">{% endif %}
     <label><span class="sr">{{ _("Pays") }}</span><select name="nation" data-autosubmit>
       <option value="">{{ _("Tous pays") }}</option>
@@ -28,19 +27,16 @@
     </select></label>
     <noscript><button type="submit">{{ _("Aller") }}</button></noscript>
   </form>{% endif %}
-  <form class="goto" action="{{ prefix }}{{ month.key }}{{ ext }}" method="get">
+  <form class="goto" action="{{ prefix }}{{ month.key }}" method="get">
     {% if sex %}<input type="hidden" name="sex" value="F">{% endif %}{% if not actifs %}<input type="hidden" name="actifs" value="0">{% endif %}{% if nat %}<input type="hidden" name="nation" value="{{ nat }}">{% endif %}
     <label>{{ _("Aller au rang") }} <input type="number" name="rank" min="1" max="{{ n_ranked }}" required></label>
     <button type="submit">{{ _("Aller") }}</button>
   </form>
 </section>
-{% endif %}
 <section class="tools">
-  {% if dyn %}<form class="gsearch inline" action="{{ root }}search" role="search"><input type="search" name="q" placeholder="{{ _('Chercher un pilote (tous les pilotes, tous les mois)') }}" aria-label="{{ _('Chercher un pilote') }}" autocomplete="off"><input type="hidden" name="go" value="1">{% if sex %}<input type="hidden" name="sex" value="F">{% endif %}</form>
-  {% else %}<input type="search" id="q" placeholder="{{ _('Chercher un pilote ou un pays') }}" aria-label="{{ _('Chercher un pilote ou un pays') }}" data-filter="#board tbody tr">{% endif %}
-  {% if dyn and nat %}<a class="chip toggle-off" href="{{ prefix }}{{ month.key }}{{ ext }}{{ qs_nonat }}" aria-current="true" title="{{ _('Tous pays') }}">{{ nat }} ✕</a>{% endif %}
-  {% if dyn %}<a class="chip toggle-off" href="{{ prefix }}{{ month.key }}{{ ext }}{{ qs_toggle }}"{% if actifs %} aria-current="true"{% endif %} title="{{ _('Retire de la liste les inactifs (ils n’ont pas de rang)') }}">{{ '✓ ' if actifs }}{{ _("Masquer les inactifs") }}</a>
-  {% else %}<label class="check"><input type="checkbox" id="hide-off"> {{ _("Masquer les inactifs") }}</label>{% endif %}
+  <form class="gsearch inline" action="{{ root }}search" role="search"><input type="search" name="q" placeholder="{{ _('Chercher un pilote (tous les pilotes, tous les mois)') }}" aria-label="{{ _('Chercher un pilote') }}" autocomplete="off"><input type="hidden" name="go" value="1">{% if sex %}<input type="hidden" name="sex" value="F">{% endif %}</form>
+  {% if nat %}<a class="chip toggle-off" href="{{ prefix }}{{ month.key }}{{ qs_nonat }}" aria-current="true" title="{{ _('Tous pays') }}">{{ nat }} ✕</a>{% endif %}
+  <a class="chip toggle-off" href="{{ prefix }}{{ month.key }}{{ qs_toggle }}"{% if actifs %} aria-current="true"{% endif %} title="{{ _('Retire de la liste les inactifs (ils n’ont pas de rang)') }}">{{ '✓ ' if actifs }}{{ _("Masquer les inactifs") }}</a>
 </section>
 <details class="explain">
   <summary>{{ _("Comment lire ce classement ?") }}</summary>
@@ -64,7 +60,7 @@ La barre montre le niveau estimé : le point est μ, la partie foncée va du rat
   <tr{% if r.rank_a %} id="r{{ r.rank_a }}"{% else %} class="off"{% endif %}>
     <td class="rk"{% if r.rank_lo %} title="{{ _('Rang probable (± 1 écart type) : {a} à {b}', a=r.rank_lo|fint, b=r.rank_hi|fint) }}"{% endif %}>{% if r.rank_a %}{{ r.rank_a }}{% if nat %}<small class="wr" title="{{ _('Rang mondial') }}">{{ r.wrank }}</small>{% endif %}{% else %}<span class="offrk" title="{{ _('Inactif : hors classement') }}">–</span>{% endif %}</td>
     <td class="mv hide-s{% if r.move %} {{ 'up' if r.move > 0 else 'down' }}{% endif %}">{% if r.move %}{{ '▲' if r.move > 0 else '▼' }}{{ r.move|abs }}{% endif %}</td>
-    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}{{ ext }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> {% if dyn and r.nation %}<a class="nat" href="{{ prefix }}{{ month.key }}{{ ext }}{{ qs_nonat }}{{ '&' if qs_nonat else '?' }}nation={{ r.nation }}" title="{{ _('Classement') }} {{ r.nation }}">{{ r.nation }}</a>{% else %}<span class="nat">{{ r.nation }}</span>{% endif %}</td>
+    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> {% if r.nation %}<a class="nat" href="{{ prefix }}{{ month.key }}{{ qs_nonat }}{{ '&' if qs_nonat else '?' }}nation={{ r.nation }}" title="{{ _('Classement') }} {{ r.nation }}">{{ r.nation }}</a>{% else %}<span class="nat">{{ r.nation }}</span>{% endif %}</td>
     <td class="num rt">{{ r.rating|f1 if not elo else r.rating|round|int }}{% if elo and r.sd %}<small class="sd{% if r.sd >= 160 %} hi{% endif %}" title="{{ _('Incertitude : ± 1 écart type') }}">±{{ r.sd|round|int }}</small>{% endif %}</td>
     <td class="bd"><span class="band{% if elo %} sd{% endif %}" style="--a:{{ r.a }};--b:{{ r.b }};--c:{{ r.c }}" title="{% if elo %}{{ _('Rating {r}, plage probable {a} à {b}', r=r.rating|round|int, a=(r.rating - r.sd)|round|int, b=(r.rating + r.sd)|round|int) }}{% else %}μ {{ r.mu|f1 }}, σ {{ r.sigma|f2 }}{% endif %}"></span></td>
     <td class="num hide-s">{{ r.n }}</td>
@@ -75,17 +71,16 @@ La barre montre le niveau estimé : le point est μ, la partie foncée va du rat
 </table>
 {% if not rows %}<p class="note">{{ _("Aucun pilote ne correspond.") }}</p>{% endif %}
 {{ pager|safe }}
-{% if dyn %}<p class="note dl-csv"><a href="{{ root }}exports/classement_{{ month.key }}.csv{{ '?sex=F' if sex }}" download>{{ _("Télécharger ce classement (CSV)") }}</a></p>{% endif %}
-{% if not dyn and month.n_rated > n_shown %}<p class="note">{{ _("Les {n} premiers pilotes sur {total} (le détail complet n’est conservé que pour les {m} derniers mois).", n=n_shown|fint, total=month.n_rated|fint, m=cfg.full_months) }}</p>
-{% elif dyn and sex %}<p class="note">{{ _("Classement féminin : le genre est connu pour {n} pilotes (ceux de la liste CIVL fournie) ; les autres n’apparaissent pas ici. Le niveau Elo est celui du classement général : les pilotes sont comparées à tous les pilotes.", n=genre_known|fint) }}</p>
-{% elif n_pages > 1 %}<p class="note">{{ _("Pilotes {a} à {b} sur {n}.", a=first|fint, b=last|fint, n=n_shown|fint) }} {% if dyn %}{{ _("Le filtre porte sur la page affichée ; la recherche en haut de page porte sur tous les pilotes.") }}{% else %}{{ _("La recherche porte sur la page affichée.") }}{% endif %}</p>{% endif %}
+<p class="note dl-csv"><a href="{{ root }}exports/classement_{{ month.key }}.csv{{ '?sex=F' if sex }}" download>{{ _("Télécharger ce classement (CSV)") }}</a></p>
+{% if sex %}<p class="note">{{ _("Classement féminin : le genre est connu pour {n} pilotes (ceux de la liste CIVL fournie) ; les autres n’apparaissent pas ici. Le niveau Elo est celui du classement général : les pilotes sont comparées à tous les pilotes.", n=genre_known|fint) }}</p>
+{% elif n_pages > 1 %}<p class="note">{{ _("Pilotes {a} à {b} sur {n}.", a=first|fint, b=last|fint, n=n_shown|fint) }} {{ _("Le filtre porte sur la page affichée ; la recherche en haut de page porte sur tous les pilotes.") }}</p>{% endif %}
 
 {% if comps %}
 <section class="monthcomps">
   <h2>{{ _("Compétitions terminées en {month}", month=data_month(month.year, month.month)) }}</h2>
   <ul>
   {% for t in comps %}
-    <li><a href="{{ root }}competition/{{ t.comp.id }}{{ ext }}">{{ t.comp.name }}</a>
+    <li><a href="{{ root }}competition/{{ t.comp.id }}">{{ t.comp.name }}</a>
       <span>{{ _("{span}, {n} pilotes", span=span_fr(t.comp.start, t.comp.end), n=t.n_pilots) }}</span></li>
   {% endfor %}
   </ul>

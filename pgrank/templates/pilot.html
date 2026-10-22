@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main %}
 <section class="hero">
-  <p class="crumb"><a href="{{ root }}{{ home }}">{{ _("Classement") }}</a>{% if dyn %} <a href="{{ root }}compare{{ ext }}?a={{ civ }}">{{ _("Comparer avec un autre pilote") }}</a>{% endif %}</p>
+  <p class="crumb"><a href="{{ root }}">{{ _("Classement") }}</a> <a href="{{ root }}compare?a={{ civ }}">{{ _("Comparer avec un autre pilote") }}</a></p>
   <h1 class="long">{{ name }} <span class="nat big">{{ nation }}</span></h1>
   {% if fin %}
   <p class="lede">{{ _n("{n} compétition évaluée, dernière en {last}.", "{n} compétitions évaluées, dernière en {last}.", st.n, last=fin.last|iso_my) }}
@@ -52,7 +52,7 @@
   <tbody>
   {% for x in table %}
   <tr>
-    <td class="pl"><a href="{{ root }}competition/{{ x.t.comp.id }}{{ ext }}">{{ x.t.comp.name }}</a><small class="sub">{{ x.t.comp.end|date_fr }}</small></td>
+    <td class="pl"><a href="{{ root }}competition/{{ x.t.comp.id }}">{{ x.t.comp.name }}</a><small class="sub">{{ x.t.comp.end|date_fr }}</small></td>
     <td class="num">{{ x.r.rank }}<small class="sub">{{ _("sur {n}", n=x.t.n_pilots) }}</small></td>
     <td class="num hide-s">{% if elo %}{{ (x.r.won * 100)|pct }}<small class="sub">{{ _("attendu {p}", p=(x.r.exp_prob * 100)|pct) }}</small>{% else %}{{ x.r.exp_rank }}{% endif %}</td>
     <td class="st"><b>{{ x.rt_post|round|int if elo else x.rt_post|f1 }}</b>{% if not elo %}<small>μ {{ x.r.mu_post|f1 }}, σ {{ x.r.sigma_post|f2 }}</small>{% endif %}</td>

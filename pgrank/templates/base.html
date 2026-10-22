@@ -18,15 +18,15 @@
 </head>
 <body class="p-{{ page }}">
 <header class="top">
-  <a class="brand" href="{{ root }}{{ home }}"><span class="mark" aria-hidden="true"><i></i><b></b></span>{{ _(site_title) }}</a>
+  <a class="brand" href="{{ root }}"><span class="mark" aria-hidden="true"><i></i><b></b></span>{{ _(site_title) }}</a>
   <nav aria-label="{{ _('Principal') }}">
-    <a href="{{ root }}{{ home }}"{% if page == 'ranking' %} aria-current="page"{% endif %}>{{ _("Classement") }}</a>
-    <a href="{{ root }}competitions{{ ext }}"{% if page in ('competitions', 'competition') %} aria-current="page"{% endif %}>{{ _("Compétitions") }}</a>
-    {% if dyn and show_leaders %}<a href="{{ root }}leaders{{ ext }}"{% if page == 'leaders' %} aria-current="page"{% endif %}>{{ _("Numéros 1") }}</a>{% endif %}
-    <a href="{{ root }}method{{ ext }}"{% if page == 'method' %} aria-current="page"{% endif %}>{{ _("Méthode") }}</a>
-    <a href="{{ root }}wprs{{ ext }}"{% if page == 'wprs' %} aria-current="page"{% endif %}>{{ _("Analyse WPRS") }}</a>
+    <a href="{{ root }}"{% if page == 'ranking' %} aria-current="page"{% endif %}>{{ _("Classement") }}</a>
+    <a href="{{ root }}competitions"{% if page in ('competitions', 'competition') %} aria-current="page"{% endif %}>{{ _("Compétitions") }}</a>
+    {% if show_leaders %}<a href="{{ root }}leaders"{% if page == 'leaders' %} aria-current="page"{% endif %}>{{ _("Numéros 1") }}</a>{% endif %}
+    <a href="{{ root }}method"{% if page == 'method' %} aria-current="page"{% endif %}>{{ _("Méthode") }}</a>
+    <a href="{{ root }}wprs"{% if page == 'wprs' %} aria-current="page"{% endif %}>{{ _("Analyse WPRS") }}</a>
   </nav>
-  {% if dyn %}<form class="gsearch" action="{{ root }}search" role="search"><input type="search" name="q" value="{{ q or '' }}" placeholder="{{ _('Chercher un pilote ou une compétition') }}" aria-label="{{ _('Chercher un pilote ou une compétition') }}" autocomplete="off"><input type="hidden" name="go" value="1"></form>{% endif %}
+  <form class="gsearch" action="{{ root }}search" role="search"><input type="search" name="q" value="{{ q or '' }}" placeholder="{{ _('Chercher un pilote ou une compétition') }}" aria-label="{{ _('Chercher un pilote ou une compétition') }}" autocomplete="off"><input type="hidden" name="go" value="1"></form>
   {% if langs %}<details class="langsw">
     <summary aria-label="{{ _('Langue') }} : {{ langs[lang] }}">{{ lang|upper }}</summary>
     <div>{% for code, label in langs.items() %}<a href="{{ lang_href(code) if lang_href is defined else '?lang=' ~ code }}"{% if code == lang %} aria-current="true"{% endif %} hreflang="{{ code }}" lang="{{ code }}">{{ label }}</a>{% endfor %}</div>
@@ -38,11 +38,9 @@
 <footer>
   <p>{{ _h('Résultats : <a href="https://civlcomps.org">CIVL</a>, jusqu’au {last}. Calcul du {built}.', last=last_result|date_fr, built=build_date|date_fr) }}</p>
   <p>{{ _("Site indépendant et non officiel : sans lien avec la FAI ni la CIVL.") }}
-     {% if dyn %}<a href="{{ root }}legal{{ ext }}">{{ _("Mentions légales et données personnelles") }}</a>{% endif %}</p>
+     <a href="{{ root }}legal">{{ _("Mentions légales et données personnelles") }}</a></p>
   <p class="oss">{{ _h('Code source libre (licence <a href="{lic}">AGPL-3.0</a>) : <a href="{repo}">github.com/julien66/wr</a>', lic="https://github.com/julien66/wr/blob/main/LICENSE", repo="https://github.com/julien66/wr") }}</p>
   {% if langs %}<p class="langs" aria-label="Language">{% for code, label in langs.items() %}<a href="{{ lang_href(code) if lang_href is defined else '?lang=' ~ code }}"{% if code == lang %} aria-current="true"{% endif %} hreflang="{{ code }}" lang="{{ code }}">{{ label }}</a>{% endfor %}</p>{% endif %}
-  {% if not dyn %}<p><a href="{{ root }}exports/calculs_par_competition.csv">{{ _("Calculs par compétition (CSV)") }}</a>
-     <a href="{{ root }}exports/classement_mensuel.csv">{{ _("Classements mensuels (CSV)") }}</a></p>{% endif %}
 </footer>
 <script>window.I18N = {{ i18n_js|default('{"lang":"fr","t":{}}')|safe }};</script>
 <script src="{{ root }}static/app.js{% if asset_v %}?v={{ asset_v.js }}{% endif %}" defer></script>

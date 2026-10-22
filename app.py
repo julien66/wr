@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Site dynamique : lit ranking.db (produit par build_db.py) et réutilise les gabarits du site statique.
+"""Site web : lit ranking.db (produit par build_db.py) et sert les pages.
 
     pip install flask
     python app.py --db ranking.db            # http://127.0.0.1:5000
@@ -252,8 +252,7 @@ def create_app(db_path, proxy=False):
                  pilot_min_comps=meta["pilot_min_comps"], elo_params=meta["full_cfg"]["elo_params"])
     params = meta["params"]
     mkeys = [m.key for m in months]
-    app.jinja_env.globals.update(elo=True, cfg=cfg, dyn=True, comp_kind=R.comp_kind,
-                                 ext="", home="")    # adresses sans extension : /pilot/40219, /ranking/2026-10
+    app.jinja_env.globals.update(elo=True, cfg=cfg, comp_kind=R.comp_kind)
     common = dict(pages=AllPages(removed), site_title=cfg.site_title, latest_key=mkeys[-1],
                   last_result=dt.date.fromisoformat(meta["last_result"]),
                   build_date=dt.date.fromisoformat(meta["build_date"]), params=params, root="/")
@@ -361,8 +360,8 @@ def create_app(db_path, proxy=False):
             prefix="/ranking/", qs=qs, sex=sex, actifs=actifs, genre_known=genre_known,
             qs_all=qs_of("", actifs), qs_f=qs_of("F", actifs), qs_toggle=qs_of(sex, not actifs),
             nat=nat, qs_nonat=qs_of(sex, actifs, ""), nations=nations,
-            picker=R.build_picker(months, "/ranking/", key, qs, g.loc, ext=""),
-            pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc, ext=""),
+            picker=R.build_picker(months, "/ranking/", key, qs, g.loc),
+            pager=R.build_pager(key, page, n_pages, "/ranking/", qs, g.loc),
             pg=page, n_pages=n_pages, first=lo_r, last=lo_r + len(rows) - 1, n_shown=total, n_ranked=n_ranked,
             comps=comps, title=g.loc.month_label(mrow["year"], mrow["month"]) + (" – " + g.loc.gettext("féminin") if sex else "") + (" – " + nat if nat else "")
             + (" " + g.loc.gettext("(page {n})", n=page) if page > 1 else ""))

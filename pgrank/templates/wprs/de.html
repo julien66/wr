@@ -68,7 +68,7 @@
   <p>Die CIVL kennt einen Teil dieser Kritik. Unter ihren Vorschlägen für 2026 nennt laut <a href="https://civl2026.hyperknot.com/">öffentlichen Zusammenfassungen</a> Argentinien (ARG 1) das „Versagen, Sieger und Zweite zu unterscheiden“ und schlägt einen Bonus von 10 %, 5 % und 2 % für die drei Ersten vor; Polen (POL 4) merkt an, dass gut platzierte Piloten „die verfügbaren Punkte für alle aufblähen“.</p>
 
   <h2>Eine Rangliste, die aus Duellen lernt</h2>
-  <p>Der Algorithmus betrachtet nur die Zielreihenfolge: Ein Wettkampf mit 100 Piloten wird als 4.950 Duelle gelesen, und das Rating jedes Piloten steigt, wenn er besser bewertete Piloten schlägt als erwartet, und sinkt im umgekehrten Fall. Das ist das Elo-Prinzip, angewandt auf alle Duelle eines Wettkampfs (Einzelheiten auf der Seite <a href="{{ root }}method{{ ext }}">Methode</a>).</p>
+  <p>Der Algorithmus betrachtet nur die Zielreihenfolge: Ein Wettkampf mit 100 Piloten wird als 4.950 Duelle gelesen, und das Rating jedes Piloten steigt, wenn er besser bewertete Piloten schlägt als erwartet, und sinkt im umgekehrten Fall. Das ist das Elo-Prinzip, angewandt auf alle Duelle eines Wettkampfs (Einzelheiten auf der Seite <a href="{{ root }}method">Methode</a>).</p>
   <p>Das Rating hat eine genaue Bedeutung: Der Abstand zwischen zwei Piloten gibt die Wahrscheinlichkeit an, dass einer vor dem anderen ins Ziel kommt.</p>
   <p class="formula">P(i vor j) = 1 / (1 + 10<sup>−(r<sub>i</sub> − r<sub>j</sub>) / 640</sup>)</p>
   <p>Eine Rangliste, die Wahrscheinlichkeiten angibt, kann von den folgenden Ergebnissen widerlegt werden, und das macht sie überprüfbar. WPRS-Punkte sind es nicht: „87 Punkte“ sagt nichts über die Chance aus, jemanden zu schlagen.</p>
@@ -138,7 +138,7 @@
 
   <h2>Fazit: eine Ergänzung, kein Ersatz</h2>
   <p>Der WPRS bleibt nützlich für das, wofür er entworfen wurde: qualifizieren, Teilnahme belohnen, Startlisten vereinfachen. Doch als Maß für das aktuelle Niveau unterliegt er einem sehr einfachen Algorithmus, der nur die Zielreihenfolge kennt: 76,1 % richtig vorhergesagte Duelle gegenüber 72,5 % bei 458 Wettkämpfen und ein Vorteil in 4 von 5 Wettkämpfen.</p>
-  <p>Dieser Gewinn stammt aus den Verzerrungen, die ein Methodenwechsel beseitigt (Wetter, Feld, vier Ergebnisse, Alterung), nicht aus besonderer Raffinesse. Es bleiben modelleigene Schwächen, etwa das fehlende Maß für die Zuverlässigkeit bei Piloten mit wenigen Wettkämpfen, und der vielversprechendste Weg, sie anzugehen, ist, neben dem Rating eine Unsicherheit anzuzeigen. Genau das tut diese Website inzwischen: Das ± neben jedem Rating wird auf der Seite <a href="{{ root }}method{{ ext }}">Methode</a> erklärt.</p>
+  <p>Dieser Gewinn stammt aus den Verzerrungen, die ein Methodenwechsel beseitigt (Wetter, Feld, vier Ergebnisse, Alterung), nicht aus besonderer Raffinesse. Es bleiben modelleigene Schwächen, etwa das fehlende Maß für die Zuverlässigkeit bei Piloten mit wenigen Wettkämpfen, und der vielversprechendste Weg, sie anzugehen, ist, neben dem Rating eine Unsicherheit anzuzeigen. Genau das tut diese Website inzwischen: Das ± neben jedem Rating wird auf der Seite <a href="{{ root }}method">Methode</a> erklärt.</p>
   <p>Die hier aufgebaute Rangliste hat einen Vorteil: Man kann sie widerlegen. Findet ein Pilot, ein Veranstalter oder die CIVL einen Fall, in dem sie sich irrt, ist der Vergleich derselbe, den wir gerade angestellt haben: Wer sagt den nächsten Wettkampf besser voraus?</p>
 
   <h2>Ein offenes Projekt, reproduzierbare Tests</h2>

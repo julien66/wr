@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block main %}
 <section class="hero comp">
-  <p class="crumb"><a href="{{ root }}competitions{{ ext }}">{{ _("Compétitions") }}</a> <a href="{{ root }}ranking/{{ month_key }}{{ ext }}">{{ _("Classement du {date}", date=pub_date_k) }}</a></p>
+  <p class="crumb"><a href="{{ root }}competitions">{{ _("Compétitions") }}</a> <a href="{{ root }}ranking/{{ month_key }}">{{ _("Classement du {date}", date=pub_date_k) }}</a></p>
   <h1 class="long">{{ c.name }}</h1>
   <p class="lede">{{ _("{span}, {n} pilotes", span=span_fr(c.start, c.end), n=t.n_pilots) }}{% if t.rated and t.n_nations %}{{ _(" de {n} pays", n=t.n_nations) }}{% endif %}.
-    <a href="{{ c.url }}">{{ _("Résultats officiels sur le site de la CIVL") }}</a>{% if dyn %} · <a href="{{ root }}exports/competition_{{ c.id }}.csv" download>{{ _("Calcul en CSV") }}</a>{% endif %}</p>
+    <a href="{{ c.url }}">{{ _("Résultats officiels sur le site de la CIVL") }}</a> · <a href="{{ root }}exports/competition_{{ c.id }}.csv" download>{{ _("Calcul en CSV") }}</a></p>
 </section>
 
 {% if not t.rated %}
@@ -13,7 +13,7 @@
   <thead><tr><th scope="col" class="rk">{{ _("Rang") }}</th><th scope="col">{{ _("Pilote") }}</th><th scope="col" class="num">{{ _("Score") }}</th></tr></thead>
   <tbody>
   {% for r in rows %}
-  <tr><td class="rk">{{ r.rank }}</td><td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}{{ ext }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> <span class="nat">{{ r.nation }}</span></td>
+  <tr><td class="rk">{{ r.rank }}</td><td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> <span class="nat">{{ r.nation }}</span></td>
       <td class="num">{{ r.score|round|int if r.score is not none }}</td></tr>
   {% endfor %}
   </tbody>
@@ -45,7 +45,7 @@
   {% for r in rows %}
   <tr>
     <td class="rk">{{ r.rank }}</td>
-    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}{{ ext }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> <span class="nat">{{ r.nation }}</span></td>
+    <td class="pl"><span class="nm">{% if r.civlid in pages %}<a href="{{ root }}pilot/{{ r.civlid }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</span> <span class="nat">{{ r.nation }}</span></td>
     <td class="num hide-s">{{ r.score|round|int if r.score is not none }}</td>
     {% if elo %}<td class="num hide-s">{{ (r.won * 100)|pct }}</td><td class="num hide-s" title="{{ _('Rang attendu : {r} (1 + nombre moyen de pilotes classés devant)', r=r.exp_rank) }}">{{ (r.exp_prob * 100)|pct }}</td>
     {% else %}<td class="num hide-s" title="Probabilité de victoire attendue : {{ (r.exp_prob * 100)|f1 }} %">{{ r.exp_rank }}</td>{% endif %}

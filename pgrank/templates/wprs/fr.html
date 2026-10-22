@@ -68,7 +68,7 @@
   <p>La CIVL connaît une partie de ces critiques. Parmi ses propositions de 2026, <a href="https://civl2026.hyperknot.com/">d’après des résumés publics</a>, l’Argentine (ARG 1) relève l’« échec à différencier vainqueurs et seconds » et propose un bonus de 10 %, 5 % et 2 % aux trois premiers ; la Pologne (POL 4) note que les pilotes bien classés « gonflent les points disponibles pour tous ».</p>
 
   <h2>Un classement qui apprend des duels</h2>
-  <p>L’algorithme ne regarde que l’ordre d’arrivée : une épreuve de 100 pilotes est lue comme 4 950 duels, et chaque pilote voit son rating monter s’il bat des pilotes mieux notés que prévu, ou baisser dans le cas contraire. C’est le principe de l’Elo, appliqué à tous les duels d’une même épreuve (le détail est sur la page <a href="{{ root }}method{{ ext }}">Méthode</a>).</p>
+  <p>L’algorithme ne regarde que l’ordre d’arrivée : une épreuve de 100 pilotes est lue comme 4 950 duels, et chaque pilote voit son rating monter s’il bat des pilotes mieux notés que prévu, ou baisser dans le cas contraire. C’est le principe de l’Elo, appliqué à tous les duels d’une même épreuve (le détail est sur la page <a href="{{ root }}method">Méthode</a>).</p>
   <p>Le rating a un sens précis : l’écart entre deux pilotes donne la probabilité que l’un finisse devant l’autre.</p>
   <p class="formula">P(i devant j) = 1 / (1 + 10<sup>−(r<sub>i</sub> − r<sub>j</sub>) / 640</sup>)</p>
   <p>Un classement qui annonce des probabilités peut être contredit par les résultats suivants, ce qui le rend testable. Les points WPRS ne le sont pas : « 87 points » ne dit rien de la chance de battre quelqu’un.</p>
@@ -138,7 +138,7 @@
 
   <h2>Conclusion : un complément, pas un remplacement</h2>
   <p>Le WPRS reste utile pour ce pour quoi il est conçu : qualifier, récompenser la présence, simplifier les listes de départ. Mais comme mesure du niveau actuel, il perd face à un algorithme très simple, qui ne connaît que l’ordre d’arrivée : 76,1 % de duels bien prédits contre 72,5 % sur 458 épreuves, et un avantage dans 4 épreuves sur 5.</p>
-  <p>Ce gain vient des biais qu’on corrige en changeant de méthode (météo, plateau, quatre résultats, vieillissement), pas d’une sophistication particulière. Il reste des défauts propres au modèle, comme l’absence de mesure de confiance pour les pilotes qui ont peu couru, et la voie la plus prometteuse pour les traiter est d’afficher une incertitude à côté du rating. C’est ce que fait désormais ce site : le ± affiché à côté de chaque rating est expliqué sur la page <a href="{{ root }}method{{ ext }}">Méthode</a>.</p>
+  <p>Ce gain vient des biais qu’on corrige en changeant de méthode (météo, plateau, quatre résultats, vieillissement), pas d’une sophistication particulière. Il reste des défauts propres au modèle, comme l’absence de mesure de confiance pour les pilotes qui ont peu couru, et la voie la plus prometteuse pour les traiter est d’afficher une incertitude à côté du rating. C’est ce que fait désormais ce site : le ± affiché à côté de chaque rating est expliqué sur la page <a href="{{ root }}method">Méthode</a>.</p>
   <p>Le classement construit ici a un avantage : on peut le faire mentir. Si un pilote, un organisateur ou la CIVL trouve un cas où il se trompe, la comparaison est la même qu’on vient de faire : qui prédit le mieux l’épreuve suivante ?</p>
 
   <h2>Un projet ouvert, des tests reproductibles</h2>
