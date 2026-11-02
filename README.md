@@ -72,7 +72,7 @@ importe dans `data/civl_data.db` celles qui manquent, réimporte celles dont civ
 (nombre de pilotes différent de celui annoncé) est refusée et reprise au passage suivant. Autres options :
 `--refetch ID…` (réimporter des compétitions), `--no-wprs`, `--no-build`.
 
-**Automatique** : le workflow GitHub `.github/workflows/mise-a-jour.yml` lance `update.py` le 2 de chaque mois à 5 h (UTC)
+**Automatique** : le workflow GitHub `.github/workflows/mise-a-jour.yml` lance `update.py` chaque jour du 2 au 7 du mois à 5 h 17 (UTC) (GitHub saute parfois un lancement programmé ; sans nouvelle donnée, un passage ne fait rien)
 et ouvre une PR « Mise à jour des résultats (civlcomps) » avec les nouvelles données ; la fusionner met le site à jour.
 On peut aussi le lancer à la main (onglet Actions → « Mise à jour mensuelle » → *Run workflow*). Il faut autoriser une fois
 *Settings → Actions → General → Allow GitHub Actions to create and approve pull requests*. Si une compétition n'a pas pu

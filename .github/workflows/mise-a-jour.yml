@@ -1,11 +1,13 @@
 # Mise à jour mensuelle des résultats depuis civlcomps (update.py), puis PR avec les nouvelles données.
-# Le 2 de chaque mois (la CIVL publie le classement WPRS le 1er), ou à la main : Actions → « Mise à jour mensuelle » → Run workflow.
+# Du 2 au 7 de chaque mois (la CIVL publie le classement WPRS le 1er), ou à la main : Actions → « Mise à jour mensuelle » → Run workflow.
+# Plusieurs passages car GitHub retarde ou saute parfois les lancements programmés : sans nouvelle donnée, un passage ne fait rien ;
+# si la PR du mois est encore ouverte, il la met à jour.
 # Prérequis : Settings → Actions → General → « Allow GitHub Actions to create and approve pull requests ».
 name: Mise à jour mensuelle
 
 on:
   schedule:
-    - cron: "0 5 2 * *"
+    - cron: "17 5 2-7 * *"
   workflow_dispatch:
 
 permissions:
